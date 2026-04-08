@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="EasySchedule.Application/EasySchedule.Application.csproj" />
+  <Project Path="EasySchedule.Domain/EasySchedule.Domain.csproj" />
+  <Project Path="EasySchedule.Infrastructure/EasySchedule.Infrastructure.csproj" />
+  <Project Path="EasySchedule.UI/EasySchedule.UI.csproj" />
+</Solution>
