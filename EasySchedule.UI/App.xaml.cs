@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EasySchedule.UI
 {
-    public partial class App : Application
+    public partial class App : IApplication
     {
         public App(AppDbContext dbContext)
         {

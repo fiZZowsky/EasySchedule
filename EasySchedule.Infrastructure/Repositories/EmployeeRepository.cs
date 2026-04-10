@@ -16,12 +16,12 @@ namespace EasySchedule.Infrastructure.Repositories
 
         public async Task<IEnumerable<Employee>> GetAllAsync()
         {
-            return await dbContext.Employees.ToListAsync();
+            return await dbContext.Employees.AsNoTracking().ToListAsync();
         }
 
         public async Task<Employee?> GetByIdAsync(int id)
         {
-            return dbContext.Employees.FirstOrDefault(e => e.Id == id);
+            return await dbContext.Employees.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
         }
 
         public async Task AddAsync(Employee employee)

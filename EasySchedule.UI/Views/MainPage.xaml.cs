@@ -1,4 +1,4 @@
-﻿namespace EasySchedule.UI
+﻿namespace EasySchedule.UI.Views
 {
     public partial class MainPage : ContentPage
     {

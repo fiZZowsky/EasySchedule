@@ -3,6 +3,8 @@ using EasySchedule.Application.Interfaces.Services;
 using EasySchedule.Infrastructure.Persistence;
 using EasySchedule.Infrastructure.Repositories;
 using EasySchedule.UI.Services;
+using EasySchedule.UI.ViewModels;
+using EasySchedule.UI.Views;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -25,10 +27,14 @@ namespace EasySchedule.UI
             builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite($"Filename={dbPath}"));
 
-            // DI registration for repositories and services
+            // DI registration for repositories, services, viewmodels and pages
             builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+
+            builder.Services.AddTransient<EmployeesViewModel>();
+
+            builder.Services.AddTransient<EmployeesPage>();
 
 #if DEBUG
             builder.Logging.AddDebug();

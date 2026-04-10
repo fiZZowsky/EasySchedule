@@ -1,7 +1,6 @@
 ﻿using EasySchedule.Application.Interfaces.Repositories;
 using EasySchedule.Application.Interfaces.Services;
 using EasySchedule.Domain;
-using EasySchedule.Infrastructure.Repositories;
 
 namespace EasySchedule.UI.Services
 {
