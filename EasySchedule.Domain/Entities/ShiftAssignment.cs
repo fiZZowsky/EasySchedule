@@ -30,4 +30,10 @@ public class ShiftAssignment
         ShiftTypeId = shiftTypeId;
         Date = date;
     }
+
+    public void SetReferencesForPreview(Employee employee, ShiftType shiftType)
+    {
+        Employee = employee;
+        ShiftType = shiftType;
+    }
 }

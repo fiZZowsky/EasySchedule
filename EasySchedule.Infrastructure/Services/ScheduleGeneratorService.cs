@@ -76,8 +76,7 @@ public class ScheduleGeneratorService : IScheduleGeneratorService
                 {
                     var testAssignment = new ShiftAssignment(schedule.Id, employee.Id, shift.Id, date);
 
-                    testAssignment.GetType().GetProperty("ShiftType")?.SetValue(testAssignment, shift);
-                    testAssignment.GetType().GetProperty("Employee")?.SetValue(testAssignment, employee);
+                    testAssignment.SetReferencesForPreview(employee, shift);
 
                     var employeeCurrentShifts = proposedAssignments.Where(a => a.EmployeeId == employee.Id).ToList();
 
@@ -109,7 +108,11 @@ public class ScheduleGeneratorService : IScheduleGeneratorService
 
                 foreach (var selectedEmployee in selectedEmployees)
                 {
-                    proposedAssignments.Add(new ShiftAssignment(schedule.Id, selectedEmployee.Id, shift.Id, date));
+                    var finalAssignment = new ShiftAssignment(schedule.Id, selectedEmployee.Id, shift.Id, date);
+
+                    finalAssignment.SetReferencesForPreview(selectedEmployee, shift);
+
+                    proposedAssignments.Add(finalAssignment);
                 }
             }
         }

@@ -24,6 +24,7 @@ public partial class GeneratorViewModel : BaseViewModel
 
     public ObservableCollection<ShiftAssignment> ProposedAssignments { get; } = new();
     public ObservableCollection<ShiftRequirement> CurrentRequirements { get; } = new();
+    [ObservableProperty] private ObservableCollection<ShiftRequirementViewModel> _staffingRequirements = new();
 
     public GeneratorViewModel(
         IScheduleGeneratorService generatorService,
@@ -53,38 +54,84 @@ public partial class GeneratorViewModel : BaseViewModel
     {
         if (CurrentSchedule == null) return;
 
-        var reqResult = await _requirementService.GetRequirementsForScheduleAsync(CurrentSchedule.Id);
-        if (reqResult.IsSuccess)
+        IsBusy = true;
+        try
         {
-            CurrentRequirements.Clear();
-            foreach (var req in reqResult.Value) CurrentRequirements.Add(req);
+            var shiftTypesResult = await _shiftTypeService.GetAllShiftTypesAsync();
+            var reqResult = await _requirementService.GetRequirementsForScheduleAsync(CurrentSchedule.Id);
+
+            if (shiftTypesResult.IsSuccess && reqResult.IsSuccess)
+            {
+                StaffingRequirements.Clear();
+                foreach (var type in shiftTypesResult.Value)
+                {
+                    var existing = reqResult.Value.FirstOrDefault(r => r.ShiftTypeId == type.Id && r.SpecificDate == null);
+
+                    StaffingRequirements.Add(new ShiftRequirementViewModel
+                    {
+                        ShiftTypeId = type.Id,
+                        ShiftName = type.Name,
+                        Count = existing?.RequiredEmployeeCount ?? 1
+                    });
+                }
+            }
+        }
+        finally
+        {
+            IsBusy = false;
         }
     }
 
     [RelayCommand]
     public async Task RunGeneratorAsync()
     {
+        if (CurrentSchedule == null) return;
+
         IsBusy = true;
+        ProposedAssignments.Clear();
+
         var settings = new ScheduleSettings(MaxConsecutiveDays, MinRestHours, MaxShiftsPerWeek);
 
         var result = await _generatorService.GenerateProposalAsync(CurrentSchedule.Id, settings, RuleSeverity.Low);
 
         if (result.IsFailed)
         {
-            bool relax = await Shell.Current.DisplayAlertAsync("Generator utknął",
-                $"{result.Errors.First().Message}\n\nCzy chcesz zignorować miękkie zasady (np. ciągi dni), aby spróbować ułożyć grafik?", "Tak, nagnij zasady", "Nie, zostaw puste");
+            bool relaxToMedium = await Shell.Current.DisplayAlertAsync(
+                "Generator utknął (Poziom Łagodny)",
+                $"{result.Errors.First().Message}\n\nCzy chcesz zignorować zasady o niskim priorytecie, aby spróbować ułożyć grafik?",
+                "Tak, nagnij zasady", "Anuluj");
 
-            if (relax)
+            if (relaxToMedium)
             {
                 result = await _generatorService.GenerateProposalAsync(CurrentSchedule.Id, settings, RuleSeverity.Medium);
+
+                if (result.IsFailed)
+                {
+                    bool relaxToHigh = await Shell.Current.DisplayAlertAsync(
+                        "Generator utknął (Poziom Średni)",
+                        $"{result.Errors.First().Message}\n\nCzy chcesz zignorować średnie reguły (np. ciągi dni), byle obsadzić zmiany?",
+                        "Tak, wymuś", "Anuluj");
+
+                    if (relaxToHigh)
+                    {
+                        result = await _generatorService.GenerateProposalAsync(CurrentSchedule.Id, settings, RuleSeverity.High);
+
+                        if (result.IsFailed)
+                        {
+                            await Shell.Current.DisplayAlertAsync(
+                                "Ostateczny błąd",
+                                $"Nawet przy nagięciu zasad nie można wygenerować grafiku.\n\nPowód: {result.Errors.First().Message}\n\nZbyt mało pracowników lub zbyt wiele urlopów.",
+                                "Rozumiem");
+                        }
+                    }
+                }
             }
         }
 
         if (result.IsSuccess)
         {
-            ProposedAssignments.Clear();
             foreach (var a in result.Value) ProposedAssignments.Add(a);
-            await Shell.Current.DisplayAlertAsync("Sukces", "Wygenerowano wstępną propozycję grafiku.", "OK");
+            await Shell.Current.DisplayAlertAsync("Sukces", "Udało się ułożyć propozycję grafiku!", "OK");
         }
 
         IsBusy = false;
@@ -115,5 +162,22 @@ public partial class GeneratorViewModel : BaseViewModel
         {
             await Shell.Current.DisplayAlertAsync("PDF", "Plik PDF został wygenerowany w pamięci.", "OK");
         }
+    }
+
+    [RelayCommand]
+    public async Task SaveRequirementsAsync()
+    {
+        foreach (var req in StaffingRequirements)
+        {
+            await _requirementService.SetDefaultRequirementAsync(CurrentSchedule.Id, req.ShiftTypeId, req.Count);
+        }
+        await Shell.Current.DisplayAlertAsync("Sukces", "Zapotrzebowanie zostało zapisane.", "OK");
+    }
+
+    public partial class ShiftRequirementViewModel : ObservableObject
+    {
+        public int ShiftTypeId { get; set; }
+        public string ShiftName { get; set; } = string.Empty;
+        [ObservableProperty] private int _count;
     }
 }

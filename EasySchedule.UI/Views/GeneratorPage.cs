@@ -101,10 +101,55 @@ public class GeneratorPage : ContentPage
         actionsStack.Add(saveBtn);
         actionsStack.Add(pdfBtn);
 
+        var staffingLabel = new Label { Text = "Wymagana obsada (liczba osób)", FontAttributes = FontAttributes.Bold, Margin = new Thickness(0, 10, 0, 0) };
+
+        var staffingList = new VerticalStackLayout { Spacing = 5 };
+        BindableLayout.SetItemsSource(staffingList, _viewModel.StaffingRequirements);
+        BindableLayout.SetItemTemplate(staffingList, new DataTemplate(() =>
+        {
+            var row = new Grid { ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) }, Padding = 5 };
+
+            var nameLabel = new Label { VerticalOptions = LayoutOptions.Center };
+            nameLabel.SetBinding(Label.TextProperty, "ShiftName");
+
+            var countStepper = new Stepper { Minimum = 0, Maximum = 10 };
+            countStepper.SetBinding(Stepper.ValueProperty, "Count");
+
+            var countLabel = new Label { VerticalOptions = LayoutOptions.Center, Margin = new Thickness(10, 0) };
+            countLabel.SetBinding(Label.TextProperty, "Count");
+
+            var rightStack = new HorizontalStackLayout { Children = { countLabel, countStepper } };
+
+            row.Add(nameLabel, 0);
+            row.Add(rightStack, 1);
+            return row;
+        }));
+
+        var saveReqBtn = new Button
+        {
+            Text = "ZAPISZ OBSADĘ",
+            BackgroundColor = Color.FromArgb("#34495E"),
+            TextColor = Colors.White,
+            Margin = new Thickness(0, 10, 0, 0)
+        };
+        saveReqBtn.SetBinding(Button.CommandProperty, nameof(GeneratorViewModel.SaveRequirementsCommand));
+
+        var staffingCard = new Border
+        {
+            BackgroundColor = Colors.White,
+            StrokeShape = new RoundRectangle { CornerRadius = 12 },
+            Padding = 15,
+            Margin = new Thickness(0, 0, 0, 10),
+            Content = new VerticalStackLayout { Children = { staffingList, saveReqBtn } }
+        };
+
         mainStack.Add(settingsCard);
         mainStack.Add(resultsLabel);
         mainStack.Add(resultsList);
         mainStack.Add(actionsStack);
+        mainStack.Add(staffingLabel);
+        mainStack.Add(staffingCard);
+        mainStack.Add(settingsCard);
 
         mainScroll.Content = mainStack;
         Content = mainScroll;
