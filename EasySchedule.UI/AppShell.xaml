@@ -10,5 +10,8 @@
         <ShellContent Title="Zawody" ContentTemplate="{DataTemplate local:ProfessionsPage}" />
         <ShellContent Title="Rodzaje Zmian" ContentTemplate="{DataTemplate local:ShiftTypesPage}" />
     </FlyoutItem>
+    <FlyoutItem Title="Personel">
+        <ShellContent Title="Pracownicy" ContentTemplate="{DataTemplate local:EmployeesPage}" />
+    </FlyoutItem>
 
 </Shell>
