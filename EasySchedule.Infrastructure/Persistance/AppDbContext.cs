@@ -9,6 +9,8 @@ public class AppDbContext : DbContext
     public DbSet<Profession> Professions { get; set; }
     public DbSet<TimeOff> TimeOffs { get; set; }
     public DbSet<ShiftType> ShiftTypes { get; set; }
+    public DbSet<Schedule> Schedules { get; set; }
+    public DbSet<ShiftAssignment> ShiftAssignments { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -52,6 +54,32 @@ public class AppDbContext : DbContext
             entity.HasKey(s => s.Id);
             entity.Property(s => s.Name).IsRequired().HasMaxLength(50);
             entity.Property(s => s.ShortName).IsRequired().HasMaxLength(5);
+        });
+
+        modelBuilder.Entity<Schedule>(entity =>
+        {
+            entity.HasKey(s => s.Id);
+            entity.Property(s => s.Name).IsRequired().HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<ShiftAssignment>(entity =>
+        {
+            entity.HasKey(sa => sa.Id);
+
+            entity.HasOne(sa => sa.Schedule)
+                  .WithMany(s => s.ShiftAssignments)
+                  .HasForeignKey(sa => sa.ScheduleId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(sa => sa.Employee)
+                  .WithMany()
+                  .HasForeignKey(sa => sa.EmployeeId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(sa => sa.ShiftType)
+                  .WithMany()
+                  .HasForeignKey(sa => sa.ShiftTypeId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
