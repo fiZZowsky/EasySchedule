@@ -49,7 +49,7 @@ public partial class ShiftTypesViewModel : BaseViewModel
     {
         if (string.IsNullOrWhiteSpace(NewName) || string.IsNullOrWhiteSpace(NewShortName))
         {
-            await Shell.Current.DisplayAlert("Błąd", "Wypełnij nazwę i skrót.", "OK");
+            await Shell.Current.DisplayAlertAsync("Błąd", "Wypełnij nazwę i skrót.", "OK");
             return;
         }
 
@@ -67,7 +67,7 @@ public partial class ShiftTypesViewModel : BaseViewModel
         }
         else
         {
-            await Shell.Current.DisplayAlert("Błąd", result.Errors.First().Message, "OK");
+            await Shell.Current.DisplayAlertAsync("Błąd", result.Errors.First().Message, "OK");
         }
     }
 

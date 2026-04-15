@@ -59,13 +59,13 @@ public partial class EmployeesViewModel : BaseViewModel
     {
         if (string.IsNullOrWhiteSpace(NewName) || string.IsNullOrWhiteSpace(NewSurname))
         {
-            await Shell.Current.DisplayAlert("Błąd", "Podaj imię i nazwisko pracownika.", "OK");
+            await Shell.Current.DisplayAlertAsync("Błąd", "Podaj imię i nazwisko pracownika.", "OK");
             return;
         }
 
         if (SelectedProfession == null)
         {
-            await Shell.Current.DisplayAlert("Błąd", "Wybierz zawód pracownika.", "OK");
+            await Shell.Current.DisplayAlertAsync("Błąd", "Wybierz zawód pracownika.", "OK");
             return;
         }
 
@@ -82,7 +82,7 @@ public partial class EmployeesViewModel : BaseViewModel
         }
         else
         {
-            await Shell.Current.DisplayAlert("Błąd", result.Errors.First().Message, "OK");
+            await Shell.Current.DisplayAlertAsync("Błąd", result.Errors.First().Message, "OK");
         }
     }
 
@@ -91,7 +91,7 @@ public partial class EmployeesViewModel : BaseViewModel
     {
         if (employee == null) return;
 
-        bool confirm = await Shell.Current.DisplayAlert("Potwierdzenie", $"Usunąć pracownika {employee.Name} {employee.Surname}?", "Tak", "Nie");
+        bool confirm = await Shell.Current.DisplayAlertAsync("Potwierdzenie", $"Usunąć pracownika {employee.Name} {employee.Surname}?", "Tak", "Nie");
         if (!confirm) return;
 
         var result = await _employeeService.DeleteEmployeeAsync(employee.Id);
@@ -101,7 +101,7 @@ public partial class EmployeesViewModel : BaseViewModel
         }
         else
         {
-            await Shell.Current.DisplayAlert("Błąd", result.Errors.FirstOrDefault()?.Message, "OK");
+            await Shell.Current.DisplayAlertAsync("Błąd", result.Errors.FirstOrDefault()?.Message, "OK");
         }
     }
 

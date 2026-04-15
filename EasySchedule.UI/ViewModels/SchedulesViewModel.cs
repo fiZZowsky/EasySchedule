@@ -63,13 +63,13 @@ public partial class SchedulesViewModel : BaseViewModel
     {
         if (string.IsNullOrWhiteSpace(NewName))
         {
-            await Shell.Current.DisplayAlert("Błąd", "Podaj nazwę grafiku.", "OK");
+            await Shell.Current.DisplayAlertAsync("Błąd", "Podaj nazwę grafiku.", "OK");
             return;
         }
 
         if (SelectedProfession == null)
         {
-            await Shell.Current.DisplayAlert("Błąd", "Wybierz zawód dla tego grafiku.", "OK");
+            await Shell.Current.DisplayAlertAsync("Błąd", "Wybierz zawód dla tego grafiku.", "OK");
             return;
         }
 
@@ -78,7 +78,7 @@ public partial class SchedulesViewModel : BaseViewModel
 
         if (endDate < startDate)
         {
-            await Shell.Current.DisplayAlert("Błąd", "Data zakończenia nie może być przed datą rozpoczęcia.", "OK");
+            await Shell.Current.DisplayAlertAsync("Błąd", "Data zakończenia nie może być przed datą rozpoczęcia.", "OK");
             return;
         }
 
@@ -93,7 +93,7 @@ public partial class SchedulesViewModel : BaseViewModel
         }
         else
         {
-            await Shell.Current.DisplayAlert("Błąd", result.Errors.First().Message, "OK");
+            await Shell.Current.DisplayAlertAsync("Błąd", result.Errors.First().Message, "OK");
         }
     }
 

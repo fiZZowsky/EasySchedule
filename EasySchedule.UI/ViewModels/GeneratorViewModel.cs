@@ -71,7 +71,7 @@ public partial class GeneratorViewModel : BaseViewModel
 
         if (result.IsFailed)
         {
-            bool relax = await Shell.Current.DisplayAlert("Generator utknął",
+            bool relax = await Shell.Current.DisplayAlertAsync("Generator utknął",
                 $"{result.Errors.First().Message}\n\nCzy chcesz zignorować miękkie zasady (np. ciągi dni), aby spróbować ułożyć grafik?", "Tak, nagnij zasady", "Nie, zostaw puste");
 
             if (relax)
@@ -84,7 +84,7 @@ public partial class GeneratorViewModel : BaseViewModel
         {
             ProposedAssignments.Clear();
             foreach (var a in result.Value) ProposedAssignments.Add(a);
-            await Shell.Current.DisplayAlert("Sukces", "Wygenerowano wstępną propozycję grafiku.", "OK");
+            await Shell.Current.DisplayAlertAsync("Sukces", "Wygenerowano wstępną propozycję grafiku.", "OK");
         }
 
         IsBusy = false;
@@ -102,7 +102,7 @@ public partial class GeneratorViewModel : BaseViewModel
         }
         IsBusy = false;
 
-        await Shell.Current.DisplayAlert("Zapisano", "Grafik został zapisany w bazie danych.", "OK");
+        await Shell.Current.DisplayAlertAsync("Zapisano", "Grafik został zapisany w bazie danych.", "OK");
     }
 
     [RelayCommand]
@@ -113,7 +113,7 @@ public partial class GeneratorViewModel : BaseViewModel
         var exportResult = await _pdfExportService.ExportScheduleToPdfAsync(CurrentSchedule);
         if (exportResult.IsSuccess)
         {
-            await Shell.Current.DisplayAlert("PDF", "Plik PDF został wygenerowany w pamięci.", "OK");
+            await Shell.Current.DisplayAlertAsync("PDF", "Plik PDF został wygenerowany w pamięci.", "OK");
         }
     }
 }

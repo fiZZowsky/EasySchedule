@@ -41,7 +41,7 @@ public partial class ProfessionsViewModel : BaseViewModel
             }
             else
             {
-                await Shell.Current.DisplayAlert("Błąd", result.Errors.FirstOrDefault()?.Message, "OK");
+                await Shell.Current.DisplayAlertAsync("Błąd", result.Errors.FirstOrDefault()?.Message, "OK");
             }
         }
         finally
@@ -55,7 +55,7 @@ public partial class ProfessionsViewModel : BaseViewModel
     {
         if (string.IsNullOrWhiteSpace(NewProfessionName))
         {
-            await Shell.Current.DisplayAlert("Uwaga", "Podaj nazwę zawodu.", "OK");
+            await Shell.Current.DisplayAlertAsync("Uwaga", "Podaj nazwę zawodu.", "OK");
             return;
         }
 
@@ -72,7 +72,7 @@ public partial class ProfessionsViewModel : BaseViewModel
         else
         {
             var error = result.Errors.FirstOrDefault()?.Message ?? "Nieznany błąd.";
-            await Shell.Current.DisplayAlert("Błąd dodawania", error, "OK");
+            await Shell.Current.DisplayAlertAsync("Błąd dodawania", error, "OK");
         }
     }
 
@@ -81,7 +81,7 @@ public partial class ProfessionsViewModel : BaseViewModel
     {
         if (profession == null) return;
 
-        bool confirm = await Shell.Current.DisplayAlert("Potwierdzenie", $"Czy na pewno chcesz usunąć zawód: {profession.Name}?", "Tak", "Nie");
+        bool confirm = await Shell.Current.DisplayAlertAsync("Potwierdzenie", $"Czy na pewno chcesz usunąć zawód: {profession.Name}?", "Tak", "Nie");
         if (!confirm) return;
 
         var result = await _professionService.DeleteProfessionAsync(profession.Id);
@@ -91,7 +91,7 @@ public partial class ProfessionsViewModel : BaseViewModel
         }
         else
         {
-            await Shell.Current.DisplayAlert("Nie można usunąć", result.Errors.FirstOrDefault()?.Message, "OK");
+            await Shell.Current.DisplayAlertAsync("Nie można usunąć", result.Errors.FirstOrDefault()?.Message, "OK");
         }
     }
 }
