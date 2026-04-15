@@ -48,6 +48,7 @@ namespace EasySchedule.UI
             builder.Services.AddScoped<IShiftTypeService, ShiftTypeService>();
             builder.Services.AddScoped<IScheduleService, ScheduleService>();
             builder.Services.AddScoped<IShiftAssignmentService, ShiftAssignmentService>();
+            builder.Services.AddScoped<IScheduleGeneratorService, ScheduleGeneratorService>();
 
             // Validators
             builder.Services.AddTransient<IValidator<Employee>, EmployeeValidator>();
