@@ -3,24 +3,13 @@
     x:Class="EasySchedule.UI.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:views="clr-namespace:EasySchedule.UI.Views"
-    Shell.FlyoutBehavior="Disabled"
-    Title="EasySchedule">
+    xmlns:local="clr-namespace:EasySchedule.UI.Views"
+    Shell.FlyoutBehavior="Flyout">
 
-    <TabBar>
-
-        <Tab Title="Grafik">
-            <ShellContent
-                Route="MainPage"
-                ContentTemplate="{DataTemplate views:MainPage}" />
-        </Tab>
-
-        <Tab Title="Pracownicy">
-            <ShellContent
-                Route="EmployeesPage"
-                ContentTemplate="{DataTemplate views:EmployeesPage}" />
-        </Tab>
-
-    </TabBar>
+    <FlyoutItem Title="Zawody">
+        <ShellContent
+            Title="Zarządzaj Zawodami"
+            ContentTemplate="{DataTemplate local:ProfessionsPage}" />
+    </FlyoutItem>
 
 </Shell>

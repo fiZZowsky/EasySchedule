@@ -68,10 +68,10 @@ namespace EasySchedule.UI
             builder.Services.AddTransient<IScheduleRule, NightShiftRule>();
 
             // ViewModels
-            builder.Services.AddTransient<EmployeesViewModel>();
+            builder.Services.AddTransient<ProfessionsViewModel>();
 
             // Views
-            builder.Services.AddTransient<EmployeesPage>();
+            builder.Services.AddTransient<ProfessionsPage>();
 
 #if DEBUG
             builder.Logging.AddDebug();
