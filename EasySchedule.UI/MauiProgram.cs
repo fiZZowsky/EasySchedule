@@ -40,6 +40,7 @@ namespace EasySchedule.UI
             builder.Services.AddScoped<IShiftTypeRepository, ShiftTypeRepository>();
             builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
             builder.Services.AddScoped<IShiftAssignmentRepository, ShiftAssignmentRepository>();
+            builder.Services.AddScoped<IShiftRequirementRepository, ShiftRequirementRepository>();
 
             // Services
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();
@@ -49,6 +50,7 @@ namespace EasySchedule.UI
             builder.Services.AddScoped<IScheduleService, ScheduleService>();
             builder.Services.AddScoped<IShiftAssignmentService, ShiftAssignmentService>();
             builder.Services.AddScoped<IScheduleGeneratorService, ScheduleGeneratorService>();
+            builder.Services.AddScoped<IShiftRequirementService, ShiftRequirementService>();
 
             // Validators
             builder.Services.AddTransient<IValidator<Employee>, EmployeeValidator>();

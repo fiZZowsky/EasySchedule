@@ -4,7 +4,6 @@ using EasySchedule.Application.Interfaces.Services;
 using EasySchedule.Domain.Entities;
 using EasySchedule.Domain.Enums;
 using FluentResults;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EasySchedule.Infrastructure.Services;
 
@@ -14,6 +13,7 @@ public class ScheduleGeneratorService : IScheduleGeneratorService
     private readonly IEmployeeRepository _employeeRepository;
     private readonly IShiftTypeRepository _shiftTypeRepository;
     private readonly ITimeOffRepository _timeOffRepository;
+    private readonly IShiftRequirementRepository _shiftRequirementRepository;
     private readonly IEnumerable<IScheduleRule> _rules;
 
     public ScheduleGeneratorService(
@@ -21,19 +21,21 @@ public class ScheduleGeneratorService : IScheduleGeneratorService
         IEmployeeRepository employeeRepository,
         IShiftTypeRepository shiftTypeRepository,
         ITimeOffRepository timeOffRepository,
+        IShiftRequirementRepository shiftRequirementRepository,
         IEnumerable<IScheduleRule> rules)
     {
         _scheduleRepository = scheduleRepository;
         _employeeRepository = employeeRepository;
         _shiftTypeRepository = shiftTypeRepository;
         _timeOffRepository = timeOffRepository;
+        _shiftRequirementRepository = shiftRequirementRepository;
         _rules = rules;
     }
 
     public async Task<Result<List<ShiftAssignment>>> GenerateProposalAsync(
-    int scheduleId,
-    ScheduleSettings settings,
-    RuleSeverity enforcedSeverity = RuleSeverity.Low)
+        int scheduleId,
+        ScheduleSettings settings,
+        RuleSeverity enforcedSeverity = RuleSeverity.Low)
     {
         var schedule = await _scheduleRepository.GetByIdAsync(scheduleId);
         if (schedule == null) return Result.Fail("Grafik nie istnieje.");
@@ -45,6 +47,8 @@ public class ScheduleGeneratorService : IScheduleGeneratorService
         if (!employees.Any() || !shiftTypes.Any())
             return Result.Fail("Brakuje pracowników lub zdefiniowanych rodzajów zmian w bazie.");
 
+        var scheduleRequirements = await _shiftRequirementRepository.GetByScheduleIdAsync(scheduleId);
+
         var allTimeOffs = new List<TimeOff>();
         foreach (var emp in employees)
         {
@@ -52,13 +56,20 @@ public class ScheduleGeneratorService : IScheduleGeneratorService
         }
 
         var proposedAssignments = new List<ShiftAssignment>();
-
         var activeRules = _rules.Where(r => (int)r.Severity <= (int)enforcedSeverity).ToList();
 
         for (var date = schedule.StartDate; date <= schedule.EndDate; date = date.AddDays(1))
         {
             foreach (var shift in shiftTypes)
             {
+                var requirement = scheduleRequirements.FirstOrDefault(r => r.ShiftTypeId == shift.Id && r.SpecificDate == date)
+                               ?? scheduleRequirements.FirstOrDefault(r => r.ShiftTypeId == shift.Id && r.SpecificDate == null);
+
+                int requiredCount = requirement?.RequiredEmployeeCount ?? 1;
+
+                if (requiredCount == 0)
+                    continue;
+
                 var availableCandidates = new List<Employee>();
 
                 foreach (var employee in employees)
@@ -86,16 +97,20 @@ public class ScheduleGeneratorService : IScheduleGeneratorService
                     }
                 }
 
-                if (!availableCandidates.Any())
+                if (availableCandidates.Count < requiredCount)
                 {
-                    return Result.Fail($"Nie udało się obsadzić zmiany '{shift.Name}' w dniu {date}. Nikt z pracowników nie spełnia obecnie nałożonych reguł (Poziom: {enforcedSeverity}). Spróbuj zrelaksować zasady.");
+                    return Result.Fail($"Nie udało się obsadzić zmiany '{shift.Name}' w dniu {date}. Potrzeba {requiredCount} pracowników, a reguły spełnia tylko {availableCandidates.Count} (Poziom: {enforcedSeverity}). Spróbuj zrelaksować zasady.");
                 }
 
-                var selectedEmployee = availableCandidates
+                var selectedEmployees = availableCandidates
                     .OrderBy(c => proposedAssignments.Count(a => a.EmployeeId == c.Id))
-                    .First();
+                    .Take(requiredCount)
+                    .ToList();
 
-                proposedAssignments.Add(new ShiftAssignment(schedule.Id, selectedEmployee.Id, shift.Id, date));
+                foreach (var selectedEmployee in selectedEmployees)
+                {
+                    proposedAssignments.Add(new ShiftAssignment(schedule.Id, selectedEmployee.Id, shift.Id, date));
+                }
             }
         }
 

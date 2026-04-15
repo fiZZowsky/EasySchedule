@@ -14,6 +14,8 @@ public class Schedule
     public IReadOnlyCollection<ShiftAssignment> ShiftAssignments => _shiftAssignments.AsReadOnly();
     public int ProfessionId { get; private set; }
     public Profession? Profession { get; private set; }
+    private readonly List<ShiftRequirement> _shiftRequirements = new();
+    public IReadOnlyCollection<ShiftRequirement> ShiftRequirements => _shiftRequirements.AsReadOnly();
 
     private Schedule() { }
 

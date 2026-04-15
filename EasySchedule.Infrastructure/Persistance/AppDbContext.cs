@@ -11,6 +11,7 @@ public class AppDbContext : DbContext
     public DbSet<ShiftType> ShiftTypes { get; set; }
     public DbSet<Schedule> Schedules { get; set; }
     public DbSet<ShiftAssignment> ShiftAssignments { get; set; }
+    public DbSet<ShiftRequirement> ShiftRequirements { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -79,6 +80,21 @@ public class AppDbContext : DbContext
             entity.HasOne(sa => sa.ShiftType)
                   .WithMany()
                   .HasForeignKey(sa => sa.ShiftTypeId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ShiftRequirement>(entity =>
+        {
+            entity.HasKey(sr => sr.Id);
+
+            entity.HasOne(sr => sr.Schedule)
+                  .WithMany(s => s.ShiftRequirements)
+                  .HasForeignKey(sr => sr.ScheduleId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(sr => sr.ShiftType)
+                  .WithMany()
+                  .HasForeignKey(sr => sr.ShiftTypeId)
                   .OnDelete(DeleteBehavior.Restrict);
         });
     }
