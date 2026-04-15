@@ -4,6 +4,7 @@ using EasySchedule.Application.Interfaces.Services;
 using EasySchedule.Domain.Entities;
 using EasySchedule.Domain.Enums;
 using FluentResults;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EasySchedule.Infrastructure.Services;
 
@@ -30,14 +31,15 @@ public class ScheduleGeneratorService : IScheduleGeneratorService
     }
 
     public async Task<Result<List<ShiftAssignment>>> GenerateProposalAsync(
-        int scheduleId,
-        ScheduleSettings settings,
-        RuleSeverity enforcedSeverity = RuleSeverity.Low)
+    int scheduleId,
+    ScheduleSettings settings,
+    RuleSeverity enforcedSeverity = RuleSeverity.Low)
     {
         var schedule = await _scheduleRepository.GetByIdAsync(scheduleId);
         if (schedule == null) return Result.Fail("Grafik nie istnieje.");
 
-        var employees = await _employeeRepository.GetAllAsync();
+        var allEmployees = await _employeeRepository.GetAllAsync();
+        var employees = allEmployees.Where(e => e.ProfessionId == schedule.ProfessionId).ToList();
         var shiftTypes = await _shiftTypeRepository.GetAllAsync();
 
         if (!employees.Any() || !shiftTypes.Any())
@@ -62,7 +64,9 @@ public class ScheduleGeneratorService : IScheduleGeneratorService
                 foreach (var employee in employees)
                 {
                     var testAssignment = new ShiftAssignment(schedule.Id, employee.Id, shift.Id, date);
+
                     testAssignment.GetType().GetProperty("ShiftType")?.SetValue(testAssignment, shift);
+                    testAssignment.GetType().GetProperty("Employee")?.SetValue(testAssignment, employee);
 
                     var employeeCurrentShifts = proposedAssignments.Where(a => a.EmployeeId == employee.Id).ToList();
 

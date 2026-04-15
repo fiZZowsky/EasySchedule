@@ -12,22 +12,26 @@ public class Schedule
 
     private readonly List<ShiftAssignment> _shiftAssignments = new();
     public IReadOnlyCollection<ShiftAssignment> ShiftAssignments => _shiftAssignments.AsReadOnly();
+    public int ProfessionId { get; private set; }
+    public Profession? Profession { get; private set; }
 
     private Schedule() { }
 
-    public Schedule(string name, DateOnly startDate, DateOnly endDate)
+    public Schedule(string name, DateOnly startDate, DateOnly endDate, int professionId)
     {
         Name = name;
         StartDate = startDate;
         EndDate = endDate;
+        ProfessionId = professionId;
         Status = ScheduleStatus.Draft;
     }
 
-    public void UpdateDetails(string name, DateOnly startDate, DateOnly endDate)
+    public void UpdateDetails(string name, DateOnly startDate, DateOnly endDate, int professionId)
     {
         Name = name;
         StartDate = startDate;
         EndDate = endDate;
+        ProfessionId = professionId;
     }
 
     public void ChangeStatus(ScheduleStatus newStatus)

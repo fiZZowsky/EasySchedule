@@ -62,6 +62,7 @@ namespace EasySchedule.UI
             builder.Services.AddTransient<IScheduleRule, TimeOffRule>();
             builder.Services.AddTransient<IScheduleRule, MinRestHoursRule>();
             builder.Services.AddTransient<IScheduleRule, MaxConsecutiveDaysRule>();
+            builder.Services.AddTransient<IScheduleRule, NightShiftRule>();
 
             // ViewModels
             builder.Services.AddTransient<EmployeesViewModel>();

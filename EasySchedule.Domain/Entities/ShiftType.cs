@@ -6,8 +6,8 @@ public class ShiftType
     public string Name { get; private set; } = string.Empty;
     public TimeOnly StartTime { get; private set; }
     public TimeOnly EndTime { get; private set; }
-
     public string ShortName { get; private set; } = string.Empty;
+    public bool IsNightShift { get; private set; }
 
     public TimeSpan Duration
     {
@@ -28,19 +28,21 @@ public class ShiftType
 
     private ShiftType() { }
 
-    public ShiftType(string name, string shortName, TimeOnly startTime, TimeOnly endTime)
+    public ShiftType(string name, string shortName, TimeOnly startTime, TimeOnly endTime, bool isNightShift = false)
     {
         Name = name;
         ShortName = shortName;
         StartTime = startTime;
         EndTime = endTime;
+        IsNightShift = isNightShift;
     }
 
-    public void UpdateDetails(string name, string shortName, TimeOnly startTime, TimeOnly endTime)
+    public void UpdateDetails(string name, string shortName, TimeOnly startTime, TimeOnly endTime, bool isNightShift)
     {
         Name = name;
         ShortName = shortName;
         StartTime = startTime;
         EndTime = endTime;
+        IsNightShift = isNightShift;
     }
 }
