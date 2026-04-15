@@ -6,10 +6,9 @@
     xmlns:local="clr-namespace:EasySchedule.UI.Views"
     Shell.FlyoutBehavior="Flyout">
 
-    <FlyoutItem Title="Zawody">
-        <ShellContent
-            Title="Zarządzaj Zawodami"
-            ContentTemplate="{DataTemplate local:ProfessionsPage}" />
+    <FlyoutItem Title="Konfiguracja">
+        <ShellContent Title="Zawody" ContentTemplate="{DataTemplate local:ProfessionsPage}" />
+        <ShellContent Title="Rodzaje Zmian" ContentTemplate="{DataTemplate local:ShiftTypesPage}" />
     </FlyoutItem>
 
 </Shell>
