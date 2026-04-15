@@ -13,5 +13,8 @@
     <FlyoutItem Title="Personel">
         <ShellContent Title="Pracownicy" ContentTemplate="{DataTemplate local:EmployeesPage}" />
     </FlyoutItem>
+    <FlyoutItem Title="Grafiki">
+        <ShellContent Title="Zarządzaj Grafikami" ContentTemplate="{DataTemplate local:SchedulesPage}" />
+    </FlyoutItem>
 
 </Shell>
