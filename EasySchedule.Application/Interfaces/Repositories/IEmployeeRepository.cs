@@ -1,4 +1,4 @@
-﻿using EasySchedule.Domain;
+﻿using EasySchedule.Domain.Entities;
 
 namespace EasySchedule.Application.Interfaces.Repositories
 {

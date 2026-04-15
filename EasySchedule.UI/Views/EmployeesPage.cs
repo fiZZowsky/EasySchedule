@@ -1,6 +1,6 @@
 using System.Globalization;
 using EasySchedule.UI.ViewModels;
-using EasySchedule.Domain;
+using EasySchedule.Domain.Entities;
 
 namespace EasySchedule.UI.Views;
 

@@ -1,5 +1,5 @@
 ﻿using EasySchedule.Application.Interfaces.Repositories;
-using EasySchedule.Domain;
+using EasySchedule.Domain.Entities;
 using EasySchedule.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 

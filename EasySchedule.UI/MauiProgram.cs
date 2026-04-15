@@ -1,10 +1,13 @@
 ﻿using EasySchedule.Application.Interfaces.Repositories;
 using EasySchedule.Application.Interfaces.Services;
+using EasySchedule.Application.Validators;
+using EasySchedule.Domain.Entities;
 using EasySchedule.Infrastructure.Persistence;
 using EasySchedule.Infrastructure.Repositories;
-using EasySchedule.UI.Services;
+using EasySchedule.Infrastructure.Services;
 using EasySchedule.UI.ViewModels;
 using EasySchedule.UI.Views;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -29,8 +32,13 @@ namespace EasySchedule.UI
 
             // DI registration for repositories, services, viewmodels and pages
             builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+            builder.Services.AddScoped<IProfessionRepository, ProfessionRepository>();
 
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+            builder.Services.AddScoped<IProfessionService, ProfessionService>();
+
+            builder.Services.AddTransient<IValidator<Employee>, EmployeeValidator>();
+            builder.Services.AddTransient<IValidator<Profession>, ProfessionValidator>();
 
             builder.Services.AddTransient<EmployeesViewModel>();
 

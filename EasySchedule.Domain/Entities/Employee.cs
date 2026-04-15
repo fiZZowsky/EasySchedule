@@ -1,9 +1,33 @@
-﻿namespace EasySchedule.Domain;
+﻿namespace EasySchedule.Domain.Entities;
 
 public class Employee
 {
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Surname { get; set; } = string.Empty;
-    public string PhoneNumber { get; set; } = string.Empty;
+    public int Id { get; private set; }
+    public string Name { get; private set; } = string.Empty;
+    public string Surname { get; private set; } = string.Empty;
+    public string PhoneNumber { get; private set; } = string.Empty;
+    public int ProfessionId { get; private set; }
+    public Profession? Profession { get; private set; }
+
+    private Employee() { }
+
+    public Employee(string name, string surname, string phoneNumber, int professionId)
+    {
+        Name = name;
+        Surname = surname;
+        PhoneNumber = phoneNumber;
+        ProfessionId = professionId;
+    }
+
+    public void UpdateDetails(string name, string surname, string phoneNumber)
+    {
+        Name = name;
+        Surname = surname;
+        PhoneNumber = phoneNumber;
+    }
+
+    public void ChangeProfession(int newProfessionId)
+    {
+        ProfessionId = newProfessionId;
+    }
 }

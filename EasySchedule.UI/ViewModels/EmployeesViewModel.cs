@@ -2,7 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EasySchedule.Application.Interfaces.Services;
-using EasySchedule.Domain;
+using EasySchedule.Domain.Entities;
 
 namespace EasySchedule.UI.ViewModels;
 
@@ -37,10 +37,10 @@ public partial class EmployeesViewModel : ObservableObject
     {
         var employeesFromDb = await _employeeService.GetAllEmployeesAsync();
         Employees.Clear();
-        foreach (var emp in employeesFromDb)
-        {
-            Employees.Add(emp);
-        }
+        //foreach (var emp in employeesFromDb)
+        //{
+        //    Employees.Add(emp);
+        //}
     }
 
     [RelayCommand]
@@ -48,34 +48,34 @@ public partial class EmployeesViewModel : ObservableObject
     {
         try
         {
-            if (IsEditing && _employeeBeingEdited != null)
-            {
-                _employeeBeingEdited.Name = Name;
-                _employeeBeingEdited.Surname = Surname;
-                _employeeBeingEdited.PhoneNumber = PhoneNumber;
+            //if (IsEditing && _employeeBeingEdited != null)
+            //{
+            //    _employeeBeingEdited.Name = Name;
+            //    _employeeBeingEdited.Surname = Surname;
+            //    _employeeBeingEdited.PhoneNumber = PhoneNumber;
 
-                await _employeeService.UpdateEmployeeAsync(_employeeBeingEdited);
+            //    await _employeeService.UpdateEmployeeAsync(_employeeBeingEdited);
 
-                var index = Employees.IndexOf(_employeeBeingEdited);
-                if (index >= 0)
-                {
-                    Employees.RemoveAt(index);
-                    Employees.Insert(index, _employeeBeingEdited);
-                }
-            }
-            else
-            {
-                var newEmployee = new Employee
-                {
-                    Name = Name,
-                    Surname = Surname,
-                    PhoneNumber = PhoneNumber
-                };
+            //    var index = Employees.IndexOf(_employeeBeingEdited);
+            //    if (index >= 0)
+            //    {
+            //        Employees.RemoveAt(index);
+            //        Employees.Insert(index, _employeeBeingEdited);
+            //    }
+            //}
+            //else
+            //{
+            //    var newEmployee = new Employee
+            //    {
+            //        Name = Name,
+            //        Surname = Surname,
+            //        PhoneNumber = PhoneNumber
+            //    };
 
-                await _employeeService.AddEmployeeAsync(newEmployee);
+            //    await _employeeService.AddEmployeeAsync(newEmployee);
 
-                Employees.Add(newEmployee);
-            }
+            //    Employees.Add(newEmployee);
+            //}
 
             ClearForm();
         }
@@ -98,7 +98,7 @@ public partial class EmployeesViewModel : ObservableObject
     [RelayCommand]
     public async Task DeleteEmployeeAsync(Employee employee)
     {
-        await _employeeService.DeleteEmployeeAsync(employee);
+        //await _employeeService.DeleteEmployeeAsync(employee);
         await LoadEmployeesAsync();
     }
 

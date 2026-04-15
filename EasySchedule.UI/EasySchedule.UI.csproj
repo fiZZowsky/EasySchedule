@@ -66,6 +66,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <AndroidResource Remove="Services\**" />
+	  <Compile Remove="Services\**" />
+	  <EmbeddedResource Remove="Services\**" />
+	  <MauiCss Remove="Services\**" />
+	  <MauiXaml Remove="Services\**" />
+	  <None Remove="Services\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.5" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
@@ -74,13 +83,13 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\EasySchedule.Application\EasySchedule.Application.csproj" />
+	  <ProjectReference Include="..\EasySchedule.Domain\EasySchedule.Domain.csproj" />
 	  <ProjectReference Include="..\EasySchedule.Infrastructure\EasySchedule.Infrastructure.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <Folder Include="Models\" />
 	  <Folder Include="Converters\" />
-	  <Folder Include="Services\" />
 	</ItemGroup>
 
 </Project>

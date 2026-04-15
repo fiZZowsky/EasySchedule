@@ -1,13 +1,13 @@
-﻿using EasySchedule.Domain;
+﻿using EasySchedule.Domain.Entities;
+using FluentResults;
 
-namespace EasySchedule.Application.Interfaces.Services
+namespace EasySchedule.Application.Interfaces.Services;
+
+public interface IEmployeeService
 {
-    public interface IEmployeeService
-    {
-        Task<Employee?> GetEmployeeAsync(int id);
-        Task<IEnumerable<Employee>> GetAllEmployeesAsync();
-        Task AddEmployeeAsync(Employee employee);
-        Task UpdateEmployeeAsync(Employee employee);
-        Task DeleteEmployeeAsync(Employee employee);
-    }
+    Task<Result<Employee>> GetEmployeeAsync(int id);
+    Task<Result<IEnumerable<Employee>>> GetAllEmployeesAsync();
+    Task<Result> AddEmployeeAsync(Employee employee);
+    Task<Result> UpdateEmployeeAsync(Employee employee);
+    Task<Result> DeleteEmployeeAsync(int id);
 }
