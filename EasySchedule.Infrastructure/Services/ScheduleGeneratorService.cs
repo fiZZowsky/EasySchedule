@@ -102,9 +102,10 @@ public class ScheduleGeneratorService : IScheduleGeneratorService
                 }
 
                 var selectedEmployees = availableCandidates
-                    .OrderBy(c => proposedAssignments.Count(a => a.EmployeeId == c.Id))
-                    .Take(requiredCount)
-                    .ToList();
+                                    .OrderBy(c => proposedAssignments.Count(a => a.EmployeeId == c.Id))
+                                    .ThenBy(c => Guid.NewGuid())
+                                    .Take(requiredCount)
+                                    .ToList();
 
                 foreach (var selectedEmployee in selectedEmployees)
                 {
