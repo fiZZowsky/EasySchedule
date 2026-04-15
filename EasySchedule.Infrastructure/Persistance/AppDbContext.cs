@@ -8,6 +8,7 @@ public class AppDbContext : DbContext
     public DbSet<Employee> Employees { get; set; }
     public DbSet<Profession> Professions { get; set; }
     public DbSet<TimeOff> TimeOffs { get; set; }
+    public DbSet<ShiftType> ShiftTypes { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -44,6 +45,13 @@ public class AppDbContext : DbContext
                   .WithMany(e => e.TimeOffs)
                   .HasForeignKey(t => t.EmployeeId)
                   .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ShiftType>(entity =>
+        {
+            entity.HasKey(s => s.Id);
+            entity.Property(s => s.Name).IsRequired().HasMaxLength(50);
+            entity.Property(s => s.ShortName).IsRequired().HasMaxLength(5);
         });
     }
 }
