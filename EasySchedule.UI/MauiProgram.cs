@@ -1,5 +1,7 @@
 ﻿using EasySchedule.Application.Interfaces.Repositories;
+using EasySchedule.Application.Interfaces.Rules;
 using EasySchedule.Application.Interfaces.Services;
+using EasySchedule.Application.Rules;
 using EasySchedule.Application.Validators;
 using EasySchedule.Domain.Entities;
 using EasySchedule.Infrastructure.Persistence;
@@ -30,7 +32,8 @@ namespace EasySchedule.UI
             builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite($"Filename={dbPath}"));
 
-            // DI registration for repositories, services, viewmodels and pages
+            // DI registration
+            // Repositories
             builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             builder.Services.AddScoped<IProfessionRepository, ProfessionRepository>();
             builder.Services.AddScoped<ITimeOffRepository, TimeOffRepository>();
@@ -38,6 +41,7 @@ namespace EasySchedule.UI
             builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
             builder.Services.AddScoped<IShiftAssignmentRepository, ShiftAssignmentRepository>();
 
+            // Services
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();
             builder.Services.AddScoped<IProfessionService, ProfessionService>();
             builder.Services.AddScoped<ITimeOffService, TimeOffService>();
@@ -45,6 +49,7 @@ namespace EasySchedule.UI
             builder.Services.AddScoped<IScheduleService, ScheduleService>();
             builder.Services.AddScoped<IShiftAssignmentService, ShiftAssignmentService>();
 
+            // Validators
             builder.Services.AddTransient<IValidator<Employee>, EmployeeValidator>();
             builder.Services.AddTransient<IValidator<Profession>, ProfessionValidator>();
             builder.Services.AddTransient<IValidator<TimeOff>, TimeOffValidator>();
@@ -52,8 +57,15 @@ namespace EasySchedule.UI
             builder.Services.AddTransient<IValidator<Schedule>, ScheduleValidator>();
             builder.Services.AddTransient<IValidator<ShiftAssignment>, ShiftAssignmentValidator>();
 
+            // Rules
+            builder.Services.AddTransient<IScheduleRule, TimeOffRule>();
+            builder.Services.AddTransient<IScheduleRule, MinRestHoursRule>();
+            builder.Services.AddTransient<IScheduleRule, MaxConsecutiveDaysRule>();
+
+            // ViewModels
             builder.Services.AddTransient<EmployeesViewModel>();
 
+            // Views
             builder.Services.AddTransient<EmployeesPage>();
 
 #if DEBUG
