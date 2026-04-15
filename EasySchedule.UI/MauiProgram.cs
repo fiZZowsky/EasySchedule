@@ -35,16 +35,22 @@ namespace EasySchedule.UI
             builder.Services.AddScoped<IProfessionRepository, ProfessionRepository>();
             builder.Services.AddScoped<ITimeOffRepository, TimeOffRepository>();
             builder.Services.AddScoped<IShiftTypeRepository, ShiftTypeRepository>();
+            builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
+            builder.Services.AddScoped<IShiftAssignmentRepository, ShiftAssignmentRepository>();
 
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();
             builder.Services.AddScoped<IProfessionService, ProfessionService>();
             builder.Services.AddScoped<ITimeOffService, TimeOffService>();
             builder.Services.AddScoped<IShiftTypeService, ShiftTypeService>();
+            builder.Services.AddScoped<IScheduleService, ScheduleService>();
+            builder.Services.AddScoped<IShiftAssignmentService, ShiftAssignmentService>();
 
             builder.Services.AddTransient<IValidator<Employee>, EmployeeValidator>();
             builder.Services.AddTransient<IValidator<Profession>, ProfessionValidator>();
             builder.Services.AddTransient<IValidator<TimeOff>, TimeOffValidator>();
             builder.Services.AddTransient<IValidator<ShiftType>, ShiftTypeValidator>();
+            builder.Services.AddTransient<IValidator<Schedule>, ScheduleValidator>();
+            builder.Services.AddTransient<IValidator<ShiftAssignment>, ShiftAssignmentValidator>();
 
             builder.Services.AddTransient<EmployeesViewModel>();
 
