@@ -104,4 +104,17 @@ public partial class EmployeesViewModel : BaseViewModel
             await Shell.Current.DisplayAlert("Błąd", result.Errors.FirstOrDefault()?.Message, "OK");
         }
     }
+
+    [RelayCommand]
+    public async Task NavigateToTimeOffsAsync(Employee employee)
+    {
+        if (employee == null) return;
+
+        var navigationParameter = new Dictionary<string, object>
+    {
+        { "Employee", employee }
+    };
+
+        await Shell.Current.GoToAsync(nameof(EasySchedule.UI.Views.TimeOffsPage), navigationParameter);
+    }
 }

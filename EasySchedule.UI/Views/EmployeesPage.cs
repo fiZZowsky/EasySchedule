@@ -43,7 +43,16 @@ public class EmployeesPage : ContentPage
         var formStack = new VerticalStackLayout { Spacing = 10 };
         formStack.Add(new Label { Text = "Nowy pracownik", FontAttributes = FontAttributes.Bold });
 
-        var nameGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Star) }, ColumnSpacing = 10 };
+        var nameGrid = new Grid
+        {
+            ColumnDefinitions =
+            {
+                new ColumnDefinition(GridLength.Star),
+                new ColumnDefinition(GridLength.Star),
+                new ColumnDefinition(GridLength.Star)
+            },
+            ColumnSpacing = 10
+        };
 
         var nameEntry = new Entry { Placeholder = "Imię" };
         nameEntry.SetBinding(Entry.TextProperty, nameof(EmployeesViewModel.NewName));
@@ -83,9 +92,20 @@ public class EmployeesPage : ContentPage
             var professionLabel = new Label { FontSize = 12, TextColor = Color.FromArgb("#1976D2"), FontAttributes = FontAttributes.Bold };
             professionLabel.SetBinding(Label.TextProperty, "Profession.Name");
 
+            var infoStack = new VerticalStackLayout { VerticalOptions = LayoutOptions.Center, Children = { nameLabel, professionLabel } };
+
+            var timeOffBtn = new Button { Text = "Urlopy", HeightRequest = 35, BackgroundColor = Color.FromArgb("#F39C12"), TextColor = Colors.White, CornerRadius = 8, Margin = new Thickness(0, 0, 10, 0) };
+            timeOffBtn.SetBinding(Button.CommandProperty, new Binding("NavigateToTimeOffsCommand", source: _viewModel));
+            timeOffBtn.SetBinding(Button.CommandParameterProperty, ".");
+
             var deleteBtn = new ImageButton { Source = "dotnet_bot.png", WidthRequest = 24, VerticalOptions = LayoutOptions.Center };
             deleteBtn.SetBinding(ImageButton.CommandProperty, new Binding(nameof(EmployeesViewModel.DeleteEmployeeCommand), source: _viewModel));
             deleteBtn.SetBinding(ImageButton.CommandParameterProperty, ".");
+
+            var itemGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Auto) } };
+            itemGrid.Add(infoStack, 0, 0);
+            itemGrid.Add(timeOffBtn, 1, 0);
+            itemGrid.Add(deleteBtn, 2, 0);
 
             var card = new Border
             {
@@ -93,22 +113,8 @@ public class EmployeesPage : ContentPage
                 StrokeShape = new RoundRectangle { CornerRadius = 12 },
                 Padding = 15,
                 Margin = new Thickness(0, 0, 0, 10),
-                Content = new Grid
-                {
-                    ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
-                    Children =
-                    {
-                        new VerticalStackLayout {
-                            VerticalOptions = LayoutOptions.Center,
-                            Children = { nameLabel, professionLabel }
-                        },
-                        deleteBtn
-                    }
-                }
+                Content = itemGrid
             };
-
-            Grid.SetColumn(card.Content.As<Grid>().Children[0] as BindableObject, 0);
-            Grid.SetColumn(card.Content.As<Grid>().Children[1] as BindableObject, 1);
 
             return card;
         });
