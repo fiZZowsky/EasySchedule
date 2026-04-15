@@ -1,8 +1,9 @@
-﻿using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EasySchedule.Application.Interfaces.Services;
 using EasySchedule.Domain.Entities;
+using EasySchedule.UI.Views;
+using System.Collections.ObjectModel;
 
 namespace EasySchedule.UI.ViewModels;
 
@@ -101,6 +102,7 @@ public partial class SchedulesViewModel : BaseViewModel
     {
         if (schedule == null) return;
 
-        await Shell.Current.DisplayAlert("Info", $"Tutaj wkrótce otworzymy generator dla grafiku: {schedule.Name}", "OK");
+        var navParam = new Dictionary<string, object> { { "Schedule", schedule } };
+        await Shell.Current.GoToAsync(nameof(GeneratorPage), navParam);
     }
 }

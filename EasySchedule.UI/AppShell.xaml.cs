@@ -1,4 +1,6 @@
-﻿namespace EasySchedule.UI
+﻿using EasySchedule.UI.Views;
+
+namespace EasySchedule.UI
 {
     public partial class AppShell : Shell
     {
@@ -7,6 +9,7 @@
             InitializeComponent();
 
             Routing.RegisterRoute(nameof(EasySchedule.UI.Views.TimeOffsPage), typeof(EasySchedule.UI.Views.TimeOffsPage));
+            Routing.RegisterRoute(nameof(GeneratorPage), typeof(GeneratorPage));
         }
     }
 }

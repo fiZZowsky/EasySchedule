@@ -73,13 +73,15 @@ namespace EasySchedule.UI
             builder.Services.AddTransient<EmployeesViewModel>();
             builder.Services.AddTransient<TimeOffsViewModel>();
             builder.Services.AddTransient<SchedulesViewModel>();
+            builder.Services.AddTransient<GeneratorViewModel>();
 
             // Views
             builder.Services.AddTransient<ProfessionsPage>();
             builder.Services.AddTransient<ShiftTypesPage>();
             builder.Services.AddTransient<EmployeesPage>();
             builder.Services.AddTransient<TimeOffsPage>();
-            builder.Services.AddTransient<EasySchedule.UI.Views.SchedulesPage>();
+            builder.Services.AddTransient<SchedulesPage>();
+            builder.Services.AddTransient<GeneratorPage>();
 
 #if DEBUG
             builder.Logging.AddDebug();
