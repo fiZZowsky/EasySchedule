@@ -9,6 +9,9 @@ public class Employee
     public int ProfessionId { get; private set; }
     public Profession? Profession { get; private set; }
 
+    private readonly List<TimeOff> _timeOffs = new();
+    public IReadOnlyCollection<TimeOff> TimeOffs => _timeOffs.AsReadOnly();
+
     private Employee() { }
 
     public Employee(string name, string surname, string phoneNumber, int professionId)

@@ -7,6 +7,7 @@ public class AppDbContext : DbContext
 {
     public DbSet<Employee> Employees { get; set; }
     public DbSet<Profession> Professions { get; set; }
+    public DbSet<TimeOff> TimeOffs { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -32,6 +33,17 @@ public class AppDbContext : DbContext
                   .WithMany(p => p.Employees)
                   .HasForeignKey(e => e.ProfessionId)
                   .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<TimeOff>(entity =>
+        {
+            entity.HasKey(t => t.Id);
+            entity.Property(t => t.Comments).HasMaxLength(250);
+
+            entity.HasOne(t => t.Employee)
+                  .WithMany(e => e.TimeOffs)
+                  .HasForeignKey(t => t.EmployeeId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

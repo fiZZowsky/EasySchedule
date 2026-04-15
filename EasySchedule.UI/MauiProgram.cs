@@ -33,12 +33,15 @@ namespace EasySchedule.UI
             // DI registration for repositories, services, viewmodels and pages
             builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             builder.Services.AddScoped<IProfessionRepository, ProfessionRepository>();
+            builder.Services.AddScoped<ITimeOffRepository, TimeOffRepository>();
 
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();
             builder.Services.AddScoped<IProfessionService, ProfessionService>();
+            builder.Services.AddScoped<ITimeOffService, TimeOffService>();
 
             builder.Services.AddTransient<IValidator<Employee>, EmployeeValidator>();
             builder.Services.AddTransient<IValidator<Profession>, ProfessionValidator>();
+            builder.Services.AddTransient<IValidator<TimeOff>, TimeOffValidator>();
 
             builder.Services.AddTransient<EmployeesViewModel>();
 
