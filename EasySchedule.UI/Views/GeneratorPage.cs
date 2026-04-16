@@ -146,7 +146,8 @@ public class GeneratorPage : ContentPage
             RowDefinitions = { new RowDefinition(50), new RowDefinition(GridLength.Star) },
             HeightRequest = 400,
             BackgroundColor = Colors.White,
-            Margin = new Thickness(0, 0, 0, 15)
+            Margin = new Thickness(0, 0, 0, 15),
+            IsClippedToBounds = true
         };
         matrixGrid.SetBinding(Grid.IsVisibleProperty, nameof(GeneratorViewModel.HasGeneratedSchedule));
 
@@ -161,7 +162,12 @@ public class GeneratorPage : ContentPage
             return new Border { WidthRequest = 50, BackgroundColor = Color.FromArgb("#ECF0F1"), Stroke = Color.FromArgb("#BDC3C7"), Content = dayLabel };
         }));
 
-        var topScroll = new ScrollView { Orientation = ScrollOrientation.Horizontal, Content = dateHeaderStack };
+        var topScroll = new ScrollView
+        {
+            Orientation = ScrollOrientation.Horizontal,
+            Content = dateHeaderStack,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Never
+        };
         matrixGrid.Add(topScroll, 1, 0);
 
         var nameColumnStack = new VerticalStackLayout { Spacing = 2 };
@@ -192,10 +198,52 @@ public class GeneratorPage : ContentPage
             return rowStack;
         }));
 
-        var mainContentScroll = new ScrollView { Orientation = ScrollOrientation.Both, Content = cellsMatrixStack };
-        mainContentScroll.Scrolled += (s, e) => topScroll.ScrollToAsync(e.ScrollX, 0, false);
+        var leftScroll = new ScrollView
+        {
+            Orientation = ScrollOrientation.Vertical,
+            Content = nameColumnStack,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Never
+        };
 
-        matrixGrid.Add(nameColumnStack, 0, 1);
+        var mainContentScroll = new ScrollView
+        {
+            Orientation = ScrollOrientation.Both,
+            Content = cellsMatrixStack
+        };
+
+        double currentX = 0;
+        double currentY = 0;
+
+        mainContentScroll.Scrolled += (s, e) =>
+        {
+            if (Math.Abs(currentX - e.ScrollX) > 0.5 || Math.Abs(currentY - e.ScrollY) > 0.5)
+            {
+                currentX = e.ScrollX;
+                currentY = e.ScrollY;
+                topScroll.ScrollToAsync(currentX, 0, false);
+                leftScroll.ScrollToAsync(0, currentY, false);
+            }
+        };
+
+        topScroll.Scrolled += (s, e) =>
+        {
+            if (Math.Abs(currentX - e.ScrollX) > 0.5)
+            {
+                currentX = e.ScrollX;
+                mainContentScroll.ScrollToAsync(currentX, currentY, false);
+            }
+        };
+
+        leftScroll.Scrolled += (s, e) =>
+        {
+            if (Math.Abs(currentY - e.ScrollY) > 0.5)
+            {
+                currentY = e.ScrollY;
+                mainContentScroll.ScrollToAsync(currentX, currentY, false);
+            }
+        };
+
+        matrixGrid.Add(leftScroll, 0, 1);
         matrixGrid.Add(mainContentScroll, 1, 1);
 
         var actionsStack = new HorizontalStackLayout { Spacing = 10, HorizontalOptions = LayoutOptions.Center };
