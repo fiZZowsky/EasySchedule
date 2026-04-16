@@ -1,5 +1,6 @@
 using EasySchedule.UI.ViewModels;
 using Microsoft.Maui.Controls.Shapes;
+using EasySchedule.UI.Converters;
 
 namespace EasySchedule.UI.Views;
 
@@ -34,11 +35,12 @@ public class TimeOffsPage : ContentPage
 
         var empPicker = new Picker { Title = "Wybierz pracownika" };
         empPicker.SetBinding(Picker.ItemsSourceProperty, "Employees");
-        empPicker.ItemDisplayBinding = new Binding("Surname");
+        empPicker.ItemDisplayBinding = new Binding("FullName");
         empPicker.SetBinding(Picker.SelectedItemProperty, "SelectedEmployee");
 
         var typePicker = new Picker { Title = "Rodzaj wolnego" };
         typePicker.SetBinding(Picker.ItemsSourceProperty, "TimeOffTypes");
+        typePicker.ItemDisplayBinding = new Binding(".", converter: new TimeOffTypeConverter());
         typePicker.SetBinding(Picker.SelectedItemProperty, "SelectedType");
 
         var startPicker = new DatePicker { Format = "dd.MM.yyyy" };
@@ -96,7 +98,12 @@ public class TimeOffsPage : ContentPage
             datesLabel.SetBinding(Label.TextProperty, new MultiBinding
             {
                 StringFormat = "{0:dd.MM.yyyy} - {1:dd.MM.yyyy} ({2})",
-                Bindings = new[] { new Binding("StartDate"), new Binding("EndDate"), new Binding("Type") }
+                Bindings = new BindingBase[]
+                {
+                    new Binding("StartDate"),
+                    new Binding("EndDate"), 
+                    new Binding("Type", converter: new TimeOffTypeConverter())
+                }
             });
 
             var deleteBtn = new Button

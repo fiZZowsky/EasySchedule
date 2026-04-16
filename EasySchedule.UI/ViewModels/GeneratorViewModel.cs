@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.Input;
 using EasySchedule.Application.Interfaces.Services;
 using EasySchedule.Domain.Entities;
 using EasySchedule.Domain.Enums;
-using Microsoft.Maui.ApplicationModel.DataTransfer;
 
 namespace EasySchedule.UI.ViewModels;
 
@@ -137,14 +136,14 @@ public partial class GeneratorViewModel : BaseViewModel
     {
         if (SelectedOverrideShift == null)
         {
-            Shell.Current.DisplayAlert("Błąd", "Wybierz zmianę.", "OK");
+            Shell.Current.DisplayAlertAsync("Błąd", "Wybierz zmianę.", "OK");
             return;
         }
 
         var dateOnly = DateOnly.FromDateTime(OverrideDate);
         if (dateOnly < CurrentSchedule.StartDate || dateOnly > CurrentSchedule.EndDate)
         {
-            Shell.Current.DisplayAlert("Błąd", "Data wyjątku musi zawierać się w ramach czasowych grafiku.", "OK");
+            Shell.Current.DisplayAlertAsync("Błąd", "Data wyjątku musi zawierać się w ramach czasowych grafiku.", "OK");
             return;
         }
 
@@ -184,7 +183,7 @@ public partial class GeneratorViewModel : BaseViewModel
             await _requirementService.SetOverrideRequirementAsync(CurrentSchedule.Id, req.ShiftTypeId, req.SpecificDate, req.Count);
         }
 
-        await Shell.Current.DisplayAlert("Sukces", "Zapotrzebowanie (domyślne i wyjątki) zostało zapisane.", "OK");
+        await Shell.Current.DisplayAlertAsync("Sukces", "Zapotrzebowanie (domyślne i wyjątki) zostało zapisane.", "OK");
     }
 
     [RelayCommand]
@@ -201,7 +200,7 @@ public partial class GeneratorViewModel : BaseViewModel
 
         if (result.IsFailed)
         {
-            bool relaxToMedium = await Shell.Current.DisplayAlert("Generator utknął (Poziom Łagodny)",
+            bool relaxToMedium = await Shell.Current.DisplayAlertAsync("Generator utknął (Poziom Łagodny)",
                 $"{result.Errors.First().Message}\n\nCzy zignorować najlżejsze reguły?", "Tak", "Anuluj");
 
             if (relaxToMedium)
@@ -209,7 +208,7 @@ public partial class GeneratorViewModel : BaseViewModel
                 result = await _generatorService.GenerateProposalAsync(CurrentSchedule.Id, settings, RuleSeverity.Medium);
                 if (result.IsFailed)
                 {
-                    bool relaxToHigh = await Shell.Current.DisplayAlert("Generator utknął (Poziom Średni)",
+                    bool relaxToHigh = await Shell.Current.DisplayAlertAsync("Generator utknął (Poziom Średni)",
                         $"{result.Errors.First().Message}\n\nCzy zignorować średnie reguły?", "Tak", "Anuluj");
 
                     if (relaxToHigh)
@@ -217,7 +216,7 @@ public partial class GeneratorViewModel : BaseViewModel
                         result = await _generatorService.GenerateProposalAsync(CurrentSchedule.Id, settings, RuleSeverity.High);
                         if (result.IsFailed)
                         {
-                            await Shell.Current.DisplayAlert("Błąd",
+                            await Shell.Current.DisplayAlertAsync("Błąd",
                                 $"Nie można wygenerować grafiku.\n\nPowód: {result.Errors.First().Message}", "Rozumiem");
                         }
                     }
@@ -232,7 +231,7 @@ public partial class GeneratorViewModel : BaseViewModel
             BuildCalendarMatrix(result.Value);
             HasGeneratedSchedule = true;
 
-            await Shell.Current.DisplayAlert("Sukces", "Udało się ułożyć propozycję grafiku!", "OK");
+            await Shell.Current.DisplayAlertAsync("Sukces", "Udało się ułożyć propozycję grafiku!", "OK");
         }
         IsBusy = false;
     }
@@ -294,13 +293,13 @@ public partial class GeneratorViewModel : BaseViewModel
         }
 
         IsBusy = false;
-        await Shell.Current.DisplayAlert("Zapisano", "Grafik zapisany jako Szkic (Draft).", "OK");
+        await Shell.Current.DisplayAlertAsync("Zapisano", "Grafik zapisany jako Szkic.", "OK");
     }
 
     [RelayCommand]
     public async Task PublishScheduleAsync()
     {
-        var confirm = await Shell.Current.DisplayAlert("Potwierdzenie",
+        var confirm = await Shell.Current.DisplayAlertAsync("Potwierdzenie",
             "Czy na pewno chcesz opublikować grafik? Po tej operacji edycja nie będzie możliwa.", "Tak", "Nie");
 
         if (!confirm) return;
@@ -316,7 +315,7 @@ public partial class GeneratorViewModel : BaseViewModel
         IsPublished = true;
 
         IsBusy = false;
-        await Shell.Current.DisplayAlert("Opublikowano", "Grafik został zatwierdzony i opublikowany.", "OK");
+        await Shell.Current.DisplayAlertAsync("Opublikowano", "Grafik został zatwierdzony i opublikowany.", "OK");
     }
 
     [RelayCommand]
@@ -338,7 +337,7 @@ public partial class GeneratorViewModel : BaseViewModel
         }
         else
         {
-            await Shell.Current.DisplayAlert("Błąd PDF", exportResult.Errors.First().Message, "OK");
+            await Shell.Current.DisplayAlertAsync("Błąd PDF", exportResult.Errors.First().Message, "OK");
         }
     }
 

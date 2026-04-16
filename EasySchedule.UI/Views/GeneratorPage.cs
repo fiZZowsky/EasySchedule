@@ -137,7 +137,7 @@ public class GeneratorPage : ContentPage
         };
         settingsCard.SetBinding(Border.IsVisibleProperty, nameof(GeneratorViewModel.IsEditable));
 
-        var resultsLabel = new Label { Text = "Podgląd grafiku (Siatka):", FontAttributes = FontAttributes.Bold, Margin = new Thickness(0, 20, 0, 5) };
+        var resultsLabel = new Label { Text = "Podgląd grafiku:", FontAttributes = FontAttributes.Bold, Margin = new Thickness(0, 20, 0, 5) };
         resultsLabel.SetBinding(Label.IsVisibleProperty, nameof(GeneratorViewModel.HasGeneratedSchedule));
 
         var matrixGrid = new Grid

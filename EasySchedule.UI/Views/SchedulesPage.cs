@@ -1,6 +1,7 @@
 using EasySchedule.Domain.Entities;
 using EasySchedule.UI.ViewModels;
 using Microsoft.Maui.Controls.Shapes;
+using EasySchedule.UI.Converters;
 
 namespace EasySchedule.UI.Views;
 
@@ -75,7 +76,7 @@ public class SchedulesPage : ContentPage
                     TextColor = Color.FromArgb("#1E40AF")
                 }
             };
-            ((Label)statusBadge.Content).SetBinding(Label.TextProperty, "Status");
+            ((Label)statusBadge.Content).SetBinding(Label.TextProperty, new Binding("Status", converter: new ScheduleStatusConverter()));
 
             cardGrid.Add(nameLabel, 0, 0);
             cardGrid.Add(datesLabel, 0, 1);
