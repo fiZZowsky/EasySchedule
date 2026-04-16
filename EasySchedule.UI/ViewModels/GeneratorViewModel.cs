@@ -1,9 +1,10 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EasySchedule.Application.Interfaces.Services;
 using EasySchedule.Domain.Entities;
 using EasySchedule.Domain.Enums;
-using System.Collections.ObjectModel;
+using Microsoft.Maui.ApplicationModel.DataTransfer;
 
 namespace EasySchedule.UI.ViewModels;
 
@@ -15,6 +16,7 @@ public partial class GeneratorViewModel : BaseViewModel
     private readonly IShiftTypeService _shiftTypeService;
     private readonly IShiftAssignmentService _assignmentService;
     private readonly IPdfExportService _pdfExportService;
+    private readonly IScheduleService _scheduleService;
 
     [ObservableProperty] private Schedule _currentSchedule;
 
@@ -26,7 +28,10 @@ public partial class GeneratorViewModel : BaseViewModel
 
     [ObservableProperty] private ObservableCollection<DateOnly> _calendarDays = new();
     [ObservableProperty] private ObservableCollection<CalendarRow> _calendarRows = new();
+
     [ObservableProperty] private bool _hasGeneratedSchedule;
+    [ObservableProperty] private bool _isEditable;
+    [ObservableProperty] private bool _isPublished;
 
     [ObservableProperty] private ObservableCollection<ShiftRequirementViewModel> _staffingRequirements = new();
 
@@ -42,13 +47,15 @@ public partial class GeneratorViewModel : BaseViewModel
         IShiftRequirementService requirementService,
         IShiftTypeService shiftTypeService,
         IShiftAssignmentService assignmentService,
-        IPdfExportService pdfExportService)
+        IPdfExportService pdfExportService,
+        IScheduleService scheduleService)
     {
         _generatorService = generatorService;
         _requirementService = requirementService;
         _shiftTypeService = shiftTypeService;
         _assignmentService = assignmentService;
         _pdfExportService = pdfExportService;
+        _scheduleService = scheduleService;
     }
 
     partial void OnCurrentScheduleChanged(Schedule value)
@@ -57,9 +64,7 @@ public partial class GeneratorViewModel : BaseViewModel
         {
             Title = $"Generator: {value.Name}";
             OverrideDate = value.StartDate.ToDateTime(TimeOnly.MinValue);
-
             HasGeneratedSchedule = false;
-
             LoadDataCommand.Execute(null);
         }
     }
@@ -72,8 +77,12 @@ public partial class GeneratorViewModel : BaseViewModel
         IsBusy = true;
         try
         {
+            IsEditable = CurrentSchedule.Status == ScheduleStatus.Draft;
+            IsPublished = CurrentSchedule.Status == ScheduleStatus.Published;
+
             var shiftTypesResult = await _shiftTypeService.GetAllShiftTypesAsync();
             var reqResult = await _requirementService.GetRequirementsForScheduleAsync(CurrentSchedule.Id);
+            var existingAssignments = await _assignmentService.GetAssignmentsByScheduleIdAsync(CurrentSchedule.Id);
 
             if (shiftTypesResult.IsSuccess && reqResult.IsSuccess)
             {
@@ -104,6 +113,17 @@ public partial class GeneratorViewModel : BaseViewModel
                         Count = o.RequiredEmployeeCount
                     });
                 }
+
+                if (existingAssignments.IsSuccess && existingAssignments.Value.Any())
+                {
+                    ProposedAssignments.Clear();
+                    foreach (var a in existingAssignments.Value)
+                    {
+                        ProposedAssignments.Add(a);
+                    }
+                    BuildCalendarMatrix(existingAssignments.Value.ToList());
+                    HasGeneratedSchedule = true;
+                }
             }
         }
         finally
@@ -117,14 +137,14 @@ public partial class GeneratorViewModel : BaseViewModel
     {
         if (SelectedOverrideShift == null)
         {
-            Shell.Current.DisplayAlertAsync("Błąd", "Wybierz zmianę.", "OK");
+            Shell.Current.DisplayAlert("Błąd", "Wybierz zmianę.", "OK");
             return;
         }
 
         var dateOnly = DateOnly.FromDateTime(OverrideDate);
         if (dateOnly < CurrentSchedule.StartDate || dateOnly > CurrentSchedule.EndDate)
         {
-            Shell.Current.DisplayAlertAsync("Błąd", "Data wyjątku musi zawierać się w ramach czasowych grafiku.", "OK");
+            Shell.Current.DisplayAlert("Błąd", "Data wyjątku musi zawierać się w ramach czasowych grafiku.", "OK");
             return;
         }
 
@@ -164,7 +184,7 @@ public partial class GeneratorViewModel : BaseViewModel
             await _requirementService.SetOverrideRequirementAsync(CurrentSchedule.Id, req.ShiftTypeId, req.SpecificDate, req.Count);
         }
 
-        await Shell.Current.DisplayAlertAsync("Sukces", "Zapotrzebowanie (domyślne i wyjątki) zostało zapisane.", "OK");
+        await Shell.Current.DisplayAlert("Sukces", "Zapotrzebowanie (domyślne i wyjątki) zostało zapisane.", "OK");
     }
 
     [RelayCommand]
@@ -172,6 +192,7 @@ public partial class GeneratorViewModel : BaseViewModel
     {
         if (CurrentSchedule == null) return;
         IsBusy = true;
+
         HasGeneratedSchedule = false;
         ProposedAssignments.Clear();
 
@@ -180,24 +201,24 @@ public partial class GeneratorViewModel : BaseViewModel
 
         if (result.IsFailed)
         {
-            bool relaxToMedium = await Shell.Current.DisplayAlertAsync("Generator utknął (Poziom Łagodny)",
-                $"{result.Errors.First().Message}\n\nCzy zignorować najlżejsze reguły?", "Tak, nagnij zasady", "Anuluj");
+            bool relaxToMedium = await Shell.Current.DisplayAlert("Generator utknął (Poziom Łagodny)",
+                $"{result.Errors.First().Message}\n\nCzy zignorować najlżejsze reguły?", "Tak", "Anuluj");
 
             if (relaxToMedium)
             {
                 result = await _generatorService.GenerateProposalAsync(CurrentSchedule.Id, settings, RuleSeverity.Medium);
                 if (result.IsFailed)
                 {
-                    bool relaxToHigh = await Shell.Current.DisplayAlertAsync("Generator utknął (Poziom Średni)",
-                        $"{result.Errors.First().Message}\n\nCzy zignorować średnie reguły (np. ciągi dni)?", "Tak, wymuś", "Anuluj");
+                    bool relaxToHigh = await Shell.Current.DisplayAlert("Generator utknął (Poziom Średni)",
+                        $"{result.Errors.First().Message}\n\nCzy zignorować średnie reguły?", "Tak", "Anuluj");
 
                     if (relaxToHigh)
                     {
                         result = await _generatorService.GenerateProposalAsync(CurrentSchedule.Id, settings, RuleSeverity.High);
                         if (result.IsFailed)
                         {
-                            await Shell.Current.DisplayAlertAsync("Ostateczny błąd",
-                                $"Nawet przy wymuszeniu nie można wygenerować grafiku.\n\nPowód: {result.Errors.First().Message}", "Rozumiem");
+                            await Shell.Current.DisplayAlert("Błąd",
+                                $"Nie można wygenerować grafiku.\n\nPowód: {result.Errors.First().Message}", "Rozumiem");
                         }
                     }
                 }
@@ -210,7 +231,8 @@ public partial class GeneratorViewModel : BaseViewModel
 
             BuildCalendarMatrix(result.Value);
             HasGeneratedSchedule = true;
-            await Shell.Current.DisplayAlertAsync("Sukces", "Udało się ułożyć propozycję grafiku!", "OK");
+
+            await Shell.Current.DisplayAlert("Sukces", "Udało się ułożyć propozycję grafiku!", "OK");
         }
         IsBusy = false;
     }
@@ -218,6 +240,7 @@ public partial class GeneratorViewModel : BaseViewModel
     private void BuildCalendarMatrix(List<ShiftAssignment> assignments)
     {
         CalendarDays.Clear();
+        CalendarRows.Clear();
 
         if (!assignments.Any()) return;
 
@@ -257,26 +280,43 @@ public partial class GeneratorViewModel : BaseViewModel
     }
 
     [RelayCommand]
-    public async Task SaveScheduleAsync()
+    public async Task SaveDraftAsync()
     {
         if (!ProposedAssignments.Any()) return;
-
         IsBusy = true;
 
-        foreach (var assignment in ProposedAssignments)
-        {
-            var cleanAssignment = new ShiftAssignment(
-                assignment.ScheduleId,
-                assignment.EmployeeId,
-                assignment.ShiftTypeId,
-                assignment.Date
-            );
+        await _assignmentService.DeleteAssignmentsByScheduleIdAsync(CurrentSchedule.Id);
 
-            await _assignmentService.AssignShiftAsync(cleanAssignment);
+        foreach (var a in ProposedAssignments)
+        {
+            var clean = new ShiftAssignment(a.ScheduleId, a.EmployeeId, a.ShiftTypeId, a.Date);
+            await _assignmentService.AssignShiftAsync(clean);
         }
 
         IsBusy = false;
-        await Shell.Current.DisplayAlertAsync("Zapisano", "Grafik został zapisany w bazie danych.", "OK");
+        await Shell.Current.DisplayAlert("Zapisano", "Grafik zapisany jako Szkic (Draft).", "OK");
+    }
+
+    [RelayCommand]
+    public async Task PublishScheduleAsync()
+    {
+        var confirm = await Shell.Current.DisplayAlert("Potwierdzenie",
+            "Czy na pewno chcesz opublikować grafik? Po tej operacji edycja nie będzie możliwa.", "Tak", "Nie");
+
+        if (!confirm) return;
+
+        IsBusy = true;
+
+        await SaveDraftAsync();
+
+        CurrentSchedule.Status = ScheduleStatus.Published;
+        await _scheduleService.UpdateScheduleAsync(CurrentSchedule);
+
+        IsEditable = false;
+        IsPublished = true;
+
+        IsBusy = false;
+        await Shell.Current.DisplayAlert("Opublikowano", "Grafik został zatwierdzony i opublikowany.", "OK");
     }
 
     [RelayCommand]
@@ -298,7 +338,7 @@ public partial class GeneratorViewModel : BaseViewModel
         }
         else
         {
-            await Shell.Current.DisplayAlertAsync("Błąd", exportResult.Errors.First().Message, "OK");
+            await Shell.Current.DisplayAlert("Błąd PDF", exportResult.Errors.First().Message, "OK");
         }
     }
 

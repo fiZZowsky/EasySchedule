@@ -1,48 +1,73 @@
 ﻿using EasySchedule.Application.Interfaces.Repositories;
 using EasySchedule.Application.Interfaces.Services;
+using EasySchedule.Application.Validators;
 using EasySchedule.Domain.Entities;
-using EasySchedule.Domain.Enums;
 using FluentResults;
-using FluentValidation;
 
 namespace EasySchedule.Infrastructure.Services;
 
 public class ScheduleService : IScheduleService
 {
-    private readonly IScheduleRepository _scheduleRepository;
-    private readonly IValidator<Schedule> _validator;
+    private readonly IScheduleRepository _repository;
+    private readonly ScheduleValidator _validator;
 
-    public ScheduleService(IScheduleRepository scheduleRepository, IValidator<Schedule> validator)
+    public ScheduleService(IScheduleRepository repository)
     {
-        _scheduleRepository = scheduleRepository;
-        _validator = validator;
+        _repository = repository;
+        _validator = new ScheduleValidator();
     }
 
-    public async Task<Result<IEnumerable<Schedule>>> GetAllSchedulesAsync() =>
-        Result.Ok(await _scheduleRepository.GetAllAsync());
-
-    public async Task<Result<Schedule>> GetScheduleWithDetailsAsync(int id)
+    public async Task<Result<Schedule>> GetScheduleByIdAsync(int id)
     {
-        var schedule = await _scheduleRepository.GetByIdWithAssignmentsAsync(id);
-        return schedule == null ? Result.Fail("Grafik nie znaleziony.") : Result.Ok(schedule);
+        var schedule = await _repository.GetByIdAsync(id);
+        if (schedule == null)
+            return Result.Fail("Nie znaleziono grafiku.");
+        return Result.Ok(schedule);
     }
 
-    public async Task<Result> CreateScheduleAsync(Schedule schedule)
+    public async Task<Result<IEnumerable<Schedule>>> GetAllSchedulesAsync()
     {
-        var valResult = await _validator.ValidateAsync(schedule);
-        if (!valResult.IsValid) return Result.Fail(valResult.Errors.Select(e => new Error(e.ErrorMessage)));
+        var schedules = await _repository.GetAllAsync();
+        return Result.Ok(schedules);
+    }
 
-        await _scheduleRepository.AddAsync(schedule);
+    public async Task<Result> AddScheduleAsync(Schedule schedule)
+    {
+        var validationResult = await _validator.ValidateAsync(schedule);
+        if (!validationResult.IsValid)
+            return Result.Fail(validationResult.Errors.Select(e => e.ErrorMessage));
+
+        await _repository.AddAsync(schedule);
         return Result.Ok();
     }
 
-    public async Task<Result> ChangeScheduleStatusAsync(int id, ScheduleStatus status)
+    public async Task<Result> UpdateScheduleAsync(Schedule schedule)
     {
-        var schedule = await _scheduleRepository.GetByIdAsync(id);
-        if (schedule == null) return Result.Fail("Grafik nie istnieje.");
+        var validationResult = await _validator.ValidateAsync(schedule);
+        if (!validationResult.IsValid)
+            return Result.Fail(validationResult.Errors.Select(e => e.ErrorMessage));
 
-        schedule.ChangeStatus(status);
-        await _scheduleRepository.UpdateAsync(schedule);
+        var existing = await _repository.GetByIdAsync(schedule.Id);
+        if (existing == null)
+            return Result.Fail("Nie znaleziono grafiku do aktualizacji.");
+
+        existing.Name = schedule.Name;
+        existing.StartDate = schedule.StartDate;
+        existing.EndDate = schedule.EndDate;
+        existing.ProfessionId = schedule.ProfessionId;
+        existing.Status = schedule.Status;
+
+        await _repository.UpdateAsync(existing);
+        return Result.Ok();
+    }
+
+    public async Task<Result> DeleteScheduleAsync(int id)
+    {
+        var existing = await _repository.GetByIdAsync(id);
+        if (existing == null)
+            return Result.Fail("Nie znaleziono grafiku do usunięcia.");
+
+        await _repository.DeleteAsync(id);
         return Result.Ok();
     }
 }

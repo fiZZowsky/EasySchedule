@@ -9,5 +9,5 @@ public interface IScheduleRepository
     Task<Schedule?> GetByIdWithAssignmentsAsync(int id);
     Task AddAsync(Schedule schedule);
     Task UpdateAsync(Schedule schedule);
-    Task DeleteAsync(Schedule schedule);
+    Task DeleteAsync(int scheduleId);
 }

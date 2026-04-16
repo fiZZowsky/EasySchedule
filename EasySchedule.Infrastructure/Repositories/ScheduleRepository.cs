@@ -37,9 +37,13 @@ public class ScheduleRepository : IScheduleRepository
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(Schedule schedule)
+    public async Task DeleteAsync(int scheduleId)
     {
-        _dbContext.Schedules.Remove(schedule);
-        await _dbContext.SaveChangesAsync();
+        var schedule = await _dbContext.Schedules.FindAsync(scheduleId);
+        if (schedule != null)
+        {
+            _dbContext.Schedules.Remove(schedule);
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }

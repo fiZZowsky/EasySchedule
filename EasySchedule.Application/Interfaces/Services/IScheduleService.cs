@@ -1,19 +1,13 @@
 ﻿using EasySchedule.Domain.Entities;
-using EasySchedule.Domain.Enums;
 using FluentResults;
 
 namespace EasySchedule.Application.Interfaces.Services;
 
 public interface IScheduleService
 {
+    Task<Result<Schedule>> GetScheduleByIdAsync(int id);
     Task<Result<IEnumerable<Schedule>>> GetAllSchedulesAsync();
-    Task<Result<Schedule>> GetScheduleWithDetailsAsync(int id);
-    Task<Result> CreateScheduleAsync(Schedule schedule);
-    Task<Result> ChangeScheduleStatusAsync(int id, ScheduleStatus status);
-}
-
-public interface IShiftAssignmentService
-{
-    Task<Result> AssignShiftAsync(ShiftAssignment assignment);
-    Task<Result> RemoveAssignmentAsync(int id);
+    Task<Result> AddScheduleAsync(Schedule schedule);
+    Task<Result> UpdateScheduleAsync(Schedule schedule);
+    Task<Result> DeleteScheduleAsync(int id);
 }

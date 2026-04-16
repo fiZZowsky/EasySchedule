@@ -1,60 +1,79 @@
 ﻿using EasySchedule.Application.Interfaces.Repositories;
 using EasySchedule.Application.Interfaces.Services;
+using EasySchedule.Application.Validators;
 using EasySchedule.Domain.Entities;
 using FluentResults;
-using FluentValidation;
 
 namespace EasySchedule.Infrastructure.Services;
 
 public class ShiftAssignmentService : IShiftAssignmentService
 {
-    private readonly IShiftAssignmentRepository _assignmentRepository;
-    private readonly IScheduleRepository _scheduleRepository;
-    private readonly ITimeOffRepository _timeOffRepository;
-    private readonly IValidator<ShiftAssignment> _validator;
+    private readonly IShiftAssignmentRepository _repository;
+    private readonly ShiftAssignmentValidator _validator;
 
-    public ShiftAssignmentService(
-        IShiftAssignmentRepository assignmentRepository,
-        IScheduleRepository scheduleRepository,
-        ITimeOffRepository timeOffRepository,
-        IValidator<ShiftAssignment> validator)
+    public ShiftAssignmentService(IShiftAssignmentRepository repository)
     {
-        _assignmentRepository = assignmentRepository;
-        _scheduleRepository = scheduleRepository;
-        _timeOffRepository = timeOffRepository;
-        _validator = validator;
+        _repository = repository;
+        _validator = new ShiftAssignmentValidator();
+    }
+
+    public async Task<Result<ShiftAssignment>> GetShiftAssignmentByIdAsync(int id)
+    {
+        var assignment = await _repository.GetByIdAsync(id);
+        if (assignment == null)
+            return Result.Fail("Nie znaleziono przypisania zmiany.");
+        return Result.Ok(assignment);
+    }
+
+    public async Task<Result<IEnumerable<ShiftAssignment>>> GetAllShiftAssignmentsAsync()
+    {
+        var assignments = await _repository.GetAllAsync();
+        return Result.Ok(assignments);
     }
 
     public async Task<Result> AssignShiftAsync(ShiftAssignment assignment)
     {
-        var valResult = await _validator.ValidateAsync(assignment);
-        if (!valResult.IsValid) return Result.Fail(valResult.Errors.Select(e => new Error(e.ErrorMessage)));
+        var validationResult = await _validator.ValidateAsync(assignment);
+        if (!validationResult.IsValid)
+            return Result.Fail(validationResult.Errors.Select(e => e.ErrorMessage));
 
-        var schedule = await _scheduleRepository.GetByIdAsync(assignment.ScheduleId);
-        if (schedule == null) return Result.Fail("Wskazany grafik nie istnieje.");
-
-        if (assignment.Date < schedule.StartDate || assignment.Date > schedule.EndDate)
-            return Result.Fail($"Data zmiany ({assignment.Date}) wykracza poza ramy grafiku ({schedule.StartDate} - {schedule.EndDate}).");
-
-        var employeeTimeOffs = await _timeOffRepository.GetByEmployeeIdAsync(assignment.EmployeeId);
-        var isOnLeave = employeeTimeOffs.Any(t => assignment.Date >= t.StartDate && assignment.Date <= t.EndDate);
-        if (isOnLeave)
-            return Result.Fail("Nie można przypisać zmiany. Pracownik przebywa w tym dniu na zaplanowanym urlopie/zwolnieniu.");
-
-        var existingAssignments = await _assignmentRepository.GetByEmployeeAndDateRangeAsync(assignment.EmployeeId, assignment.Date, assignment.Date);
-        if (existingAssignments.Any())
-            return Result.Fail("Pracownik ma już przypisaną zmianę na ten dzień.");
-
-        await _assignmentRepository.AddAsync(assignment);
+        await _repository.AddAsync(assignment);
         return Result.Ok();
     }
 
-    public async Task<Result> RemoveAssignmentAsync(int id)
+    public async Task<Result> UpdateShiftAssignmentAsync(ShiftAssignment assignment)
     {
-        var assignment = await _assignmentRepository.GetByIdAsync(id);
-        if (assignment == null) return Result.Fail("Przypisanie nie istnieje.");
+        var validationResult = await _validator.ValidateAsync(assignment);
+        if (!validationResult.IsValid)
+            return Result.Fail(validationResult.Errors.Select(e => e.ErrorMessage));
 
-        await _assignmentRepository.DeleteAsync(assignment);
+        var existing = await _repository.GetByIdAsync(assignment.Id);
+        if (existing == null)
+            return Result.Fail("Nie znaleziono przypisania zmiany do aktualizacji.");
+
+        await _repository.UpdateAsync(assignment);
+        return Result.Ok();
+    }
+
+    public async Task<Result> DeleteShiftAssignmentAsync(int id)
+    {
+        var existing = await _repository.GetByIdAsync(id);
+        if (existing == null)
+            return Result.Fail("Nie znaleziono przypisania zmiany do usunięcia.");
+
+        await _repository.DeleteAsync(id);
+        return Result.Ok();
+    }
+
+    public async Task<Result<IEnumerable<ShiftAssignment>>> GetAssignmentsByScheduleIdAsync(int scheduleId)
+    {
+        var assignments = await _repository.GetByScheduleIdAsync(scheduleId);
+        return Result.Ok(assignments);
+    }
+
+    public async Task<Result> DeleteAssignmentsByScheduleIdAsync(int scheduleId)
+    {
+        await _repository.DeleteByScheduleIdAsync(scheduleId);
         return Result.Ok();
     }
 }

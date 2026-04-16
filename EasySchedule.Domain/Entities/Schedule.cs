@@ -4,28 +4,28 @@ namespace EasySchedule.Domain.Entities;
 
 public class Schedule
 {
-    public int Id { get; private set; }
-    public string Name { get; private set; } = string.Empty;
-    public DateOnly StartDate { get; private set; }
-    public DateOnly EndDate { get; private set; }
-    public ScheduleStatus Status { get; private set; }
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public DateOnly StartDate { get; set; }
+    public DateOnly EndDate { get; set; }
+    public ScheduleStatus Status { get; set; }
 
     private readonly List<ShiftAssignment> _shiftAssignments = new();
     public IReadOnlyCollection<ShiftAssignment> ShiftAssignments => _shiftAssignments.AsReadOnly();
-    public int ProfessionId { get; private set; }
-    public Profession? Profession { get; private set; }
+    public int ProfessionId { get; set; }
+    public Profession? Profession { get; set; }
     private readonly List<ShiftRequirement> _shiftRequirements = new();
     public IReadOnlyCollection<ShiftRequirement> ShiftRequirements => _shiftRequirements.AsReadOnly();
 
     private Schedule() { }
 
-    public Schedule(string name, DateOnly startDate, DateOnly endDate, int professionId)
+    public Schedule(string name, DateOnly startDate, DateOnly endDate, int professionId, ScheduleStatus status = ScheduleStatus.Draft)
     {
         Name = name;
         StartDate = startDate;
         EndDate = endDate;
         ProfessionId = professionId;
-        Status = ScheduleStatus.Draft;
+        Status = status;
     }
 
     public void UpdateDetails(string name, DateOnly startDate, DateOnly endDate, int professionId)

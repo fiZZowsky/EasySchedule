@@ -7,34 +7,70 @@ namespace EasySchedule.Infrastructure.Repositories;
 
 public class ShiftAssignmentRepository : IShiftAssignmentRepository
 {
-    private readonly AppDbContext _dbContext;
+    private readonly AppDbContext _context;
 
-    public ShiftAssignmentRepository(AppDbContext dbContext) => _dbContext = dbContext;
+    public ShiftAssignmentRepository(AppDbContext context)
+    {
+        _context = context;
+    }
 
-    public async Task<IEnumerable<ShiftAssignment>> GetByScheduleIdAsync(int scheduleId) =>
-        await _dbContext.ShiftAssignments
-            .Where(sa => sa.ScheduleId == scheduleId)
-            .Include(sa => sa.Employee)
-            .Include(sa => sa.ShiftType)
+    public async Task<ShiftAssignment?> GetByIdAsync(int id)
+    {
+        return await _context.ShiftAssignments
+            .Include(a => a.Employee)
+            .Include(a => a.ShiftType)
+            .FirstOrDefaultAsync(a => a.Id == id);
+    }
+
+    public async Task<IEnumerable<ShiftAssignment>> GetAllAsync()
+    {
+        return await _context.ShiftAssignments
+            .Include(a => a.Employee)
+            .Include(a => a.ShiftType)
             .ToListAsync();
-
-    public async Task<IEnumerable<ShiftAssignment>> GetByEmployeeAndDateRangeAsync(int employeeId, DateOnly startDate, DateOnly endDate) =>
-        await _dbContext.ShiftAssignments
-            .Where(sa => sa.EmployeeId == employeeId && sa.Date >= startDate && sa.Date <= endDate)
-            .ToListAsync();
-
-    public async Task<ShiftAssignment?> GetByIdAsync(int id) =>
-        await _dbContext.ShiftAssignments.FirstOrDefaultAsync(sa => sa.Id == id);
+    }
 
     public async Task AddAsync(ShiftAssignment assignment)
     {
-        await _dbContext.ShiftAssignments.AddAsync(assignment);
-        await _dbContext.SaveChangesAsync();
+        await _context.ShiftAssignments.AddAsync(assignment);
+        await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(ShiftAssignment assignment)
+    public async Task UpdateAsync(ShiftAssignment assignment)
     {
-        _dbContext.ShiftAssignments.Remove(assignment);
-        await _dbContext.SaveChangesAsync();
+        _context.ShiftAssignments.Update(assignment);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync(int id)
+    {
+        var assignment = await _context.ShiftAssignments.FindAsync(id);
+        if (assignment != null)
+        {
+            _context.ShiftAssignments.Remove(assignment);
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task<IEnumerable<ShiftAssignment>> GetByScheduleIdAsync(int scheduleId)
+    {
+        return await _context.ShiftAssignments
+            .Include(a => a.Employee)
+            .Include(a => a.ShiftType)
+            .Where(a => a.ScheduleId == scheduleId)
+            .ToListAsync();
+    }
+
+    public async Task DeleteByScheduleIdAsync(int scheduleId)
+    {
+        var assignments = await _context.ShiftAssignments
+            .Where(a => a.ScheduleId == scheduleId)
+            .ToListAsync();
+
+        if (assignments.Any())
+        {
+            _context.ShiftAssignments.RemoveRange(assignments);
+            await _context.SaveChangesAsync();
+        }
     }
 }

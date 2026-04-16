@@ -83,7 +83,7 @@ public partial class SchedulesViewModel : BaseViewModel
         }
 
         var newSchedule = new Schedule(NewName, startDate, endDate, SelectedProfession.Id);
-        var result = await _scheduleService.CreateScheduleAsync(newSchedule);
+        var result = await _scheduleService.AddScheduleAsync(newSchedule);
 
         if (result.IsSuccess)
         {

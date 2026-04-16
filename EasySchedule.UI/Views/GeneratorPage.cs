@@ -45,6 +45,7 @@ public class GeneratorPage : ContentPage
             Padding = 15,
             Content = new VerticalStackLayout { Children = { new Label { Text = "Wymagana obsada (domyślna)", FontAttributes = FontAttributes.Bold, Margin = new Thickness(0, 0, 0, 5) }, staffingList } }
         };
+        staffingCard.SetBinding(Border.IsVisibleProperty, nameof(GeneratorViewModel.IsEditable));
 
         var datePicker = new DatePicker { Format = "dd.MM" };
         datePicker.SetBinding(DatePicker.DateProperty, nameof(GeneratorViewModel.OverrideDate));
@@ -97,6 +98,7 @@ public class GeneratorPage : ContentPage
             Padding = 15,
             Content = new VerticalStackLayout { Children = { new Label { Text = "Wyjątki dzienne (np. święta)", FontAttributes = FontAttributes.Bold, Margin = new Thickness(0, 0, 0, 5) }, overrideFormGrid, overridesList, saveReqBtn } }
         };
+        overridesCard.SetBinding(Border.IsVisibleProperty, nameof(GeneratorViewModel.IsEditable));
 
         var maxConsecutiveDaysStepper = new Stepper { Minimum = 1, Maximum = 14 };
         maxConsecutiveDaysStepper.SetBinding(Stepper.ValueProperty, nameof(GeneratorViewModel.MaxConsecutiveDays));
@@ -133,8 +135,9 @@ public class GeneratorPage : ContentPage
                 }
             }
         };
+        settingsCard.SetBinding(Border.IsVisibleProperty, nameof(GeneratorViewModel.IsEditable));
 
-        var resultsLabel = new Label { Text = "Podgląd grafiku:", FontAttributes = FontAttributes.Bold, Margin = new Thickness(0, 20, 0, 5) };
+        var resultsLabel = new Label { Text = "Podgląd grafiku (Siatka):", FontAttributes = FontAttributes.Bold, Margin = new Thickness(0, 20, 0, 5) };
         resultsLabel.SetBinding(Label.IsVisibleProperty, nameof(GeneratorViewModel.HasGeneratedSchedule));
 
         var matrixGrid = new Grid
@@ -145,8 +148,8 @@ public class GeneratorPage : ContentPage
             BackgroundColor = Colors.White,
             Margin = new Thickness(0, 0, 0, 15)
         };
-
         matrixGrid.SetBinding(Grid.IsVisibleProperty, nameof(GeneratorViewModel.HasGeneratedSchedule));
+
         matrixGrid.Add(new Border { BackgroundColor = Color.FromArgb("#ECF0F1"), Stroke = Color.FromArgb("#BDC3C7") }, 0, 0);
 
         var dateHeaderStack = new HorizontalStackLayout { Spacing = 2 };
@@ -175,15 +178,12 @@ public class GeneratorPage : ContentPage
         BindableLayout.SetItemTemplate(cellsMatrixStack, new DataTemplate(() =>
         {
             var rowStack = new HorizontalStackLayout { Spacing = 2 };
-
             rowStack.SetBinding(BindableLayout.ItemsSourceProperty, "Cells");
-
             BindableLayout.SetItemTemplate(rowStack, new DataTemplate(() =>
             {
                 var shiftLabel = new Label { TextColor = Colors.White, FontSize = 12, FontAttributes = FontAttributes.Bold, HorizontalOptions = LayoutOptions.Center, VerticalOptions = LayoutOptions.Center };
                 shiftLabel.SetBinding(Label.TextProperty, "ShiftShortName");
                 shiftLabel.SetBinding(Label.IsVisibleProperty, "HasShift");
-
                 var cellBorder = new Border { WidthRequest = 50, HeightRequest = 40, Stroke = Color.FromArgb("#ECF0F1") };
                 cellBorder.SetBinding(Border.BackgroundColorProperty, "BackgroundColor");
                 cellBorder.Content = shiftLabel;
@@ -200,13 +200,20 @@ public class GeneratorPage : ContentPage
 
         var actionsStack = new HorizontalStackLayout { Spacing = 10, HorizontalOptions = LayoutOptions.Center };
         actionsStack.SetBinding(HorizontalStackLayout.IsVisibleProperty, nameof(GeneratorViewModel.HasGeneratedSchedule));
-        var saveBtn = new Button { Text = "Zapisz w bazie", BackgroundColor = Color.FromArgb("#2B5B84"), TextColor = Colors.White };
-        saveBtn.SetBinding(Button.CommandProperty, nameof(GeneratorViewModel.SaveScheduleCommand));
+
+        var saveDraftBtn = new Button { Text = "Zapisz Szkic", BackgroundColor = Color.FromArgb("#2B5B84"), TextColor = Colors.White };
+        saveDraftBtn.SetBinding(Button.CommandProperty, nameof(GeneratorViewModel.SaveDraftCommand));
+        saveDraftBtn.SetBinding(Button.IsVisibleProperty, nameof(GeneratorViewModel.IsEditable));
+
+        var publishBtn = new Button { Text = "Zatwierdź Grafik", BackgroundColor = Color.FromArgb("#27AE60"), TextColor = Colors.White };
+        publishBtn.SetBinding(Button.CommandProperty, nameof(GeneratorViewModel.PublishScheduleCommand));
+        publishBtn.SetBinding(Button.IsVisibleProperty, nameof(GeneratorViewModel.IsEditable));
 
         var pdfBtn = new Button { Text = "Eksport PDF", BackgroundColor = Colors.DarkRed, TextColor = Colors.White };
         pdfBtn.SetBinding(Button.CommandProperty, nameof(GeneratorViewModel.ExportPdfCommand));
 
-        actionsStack.Add(saveBtn);
+        actionsStack.Add(saveDraftBtn);
+        actionsStack.Add(publishBtn);
         actionsStack.Add(pdfBtn);
 
         mainStack.Add(staffingCard);

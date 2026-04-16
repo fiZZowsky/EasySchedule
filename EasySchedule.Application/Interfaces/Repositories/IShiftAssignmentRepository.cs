@@ -4,9 +4,11 @@ namespace EasySchedule.Application.Interfaces.Repositories;
 
 public interface IShiftAssignmentRepository
 {
-    Task<IEnumerable<ShiftAssignment>> GetByScheduleIdAsync(int scheduleId);
-    Task<IEnumerable<ShiftAssignment>> GetByEmployeeAndDateRangeAsync(int employeeId, DateOnly startDate, DateOnly endDate);
     Task<ShiftAssignment?> GetByIdAsync(int id);
+    Task<IEnumerable<ShiftAssignment>> GetAllAsync();
     Task AddAsync(ShiftAssignment assignment);
-    Task DeleteAsync(ShiftAssignment assignment);
+    Task UpdateAsync(ShiftAssignment assignment);
+    Task DeleteAsync(int id);
+    Task<IEnumerable<ShiftAssignment>> GetByScheduleIdAsync(int scheduleId);
+    Task DeleteByScheduleIdAsync(int scheduleId);
 }
