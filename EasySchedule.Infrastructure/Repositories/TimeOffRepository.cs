@@ -10,6 +10,14 @@ public class TimeOffRepository : ITimeOffRepository
     private readonly AppDbContext _dbContext;
     public TimeOffRepository(AppDbContext dbContext) => _dbContext = dbContext;
 
+    public async Task<IEnumerable<TimeOff>> GetAllAsync()
+    {
+        return await _dbContext.TimeOffs
+            .Include(t => t.Employee)
+            .OrderByDescending(t => t.StartDate)
+            .ToListAsync();
+    }
+
     public async Task<IEnumerable<TimeOff>> GetByEmployeeIdAsync(int employeeId)
     {
         return await _dbContext.TimeOffs

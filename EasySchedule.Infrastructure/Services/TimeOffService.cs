@@ -19,6 +19,12 @@ public class TimeOffService : ITimeOffService
         _validator = validator;
     }
 
+    public async Task<Result<IEnumerable<TimeOff>>> GetAllTimeOffsAsync()
+    {
+        var timeOffs = await _timeOffRepository.GetAllAsync();
+        return Result.Ok(timeOffs);
+    }
+
     public async Task<Result<IEnumerable<TimeOff>>> GetTimeOffsForEmployeeAsync(int employeeId)
     {
         var timeOffs = await _timeOffRepository.GetByEmployeeIdAsync(employeeId);

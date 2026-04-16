@@ -1,5 +1,5 @@
-using EasySchedule.UI.ViewModels;
 using EasySchedule.Domain.Entities;
+using EasySchedule.UI.ViewModels;
 using Microsoft.Maui.Controls.Shapes;
 
 namespace EasySchedule.UI.Views;
@@ -12,132 +12,132 @@ public class SchedulesPage : ContentPage
     {
         _viewModel = viewModel;
         BindingContext = _viewModel;
-        BackgroundColor = Color.FromArgb("#F5F5F5");
+
+        this.SetDynamicResource(BackgroundColorProperty, "AppBackground");
+        Title = "Grafiki Miesięczne";
 
         BuildUI();
     }
 
-    protected override async void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
-        await _viewModel.LoadDataAsync();
+        _viewModel.LoadDataCommand.Execute(null);
+
+        _viewModel.SelectedSchedule = null;
     }
 
     private void BuildUI()
     {
-        var mainGrid = new Grid
+        var mainGrid = new Grid();
+
+        var collectionView = new CollectionView
         {
-            Padding = 20,
-            RowDefinitions = { new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star) }
+            SelectionMode = SelectionMode.None,
+            Margin = new Thickness(15, 15, 15, 80)
         };
 
-        var formBorder = new Border
-        {
-            BackgroundColor = Colors.White,
-            StrokeShape = new RoundRectangle { CornerRadius = 12 },
-            Padding = 15,
-            Margin = new Thickness(0, 0, 0, 20),
-            Shadow = new Shadow { Opacity = 0.05f, Radius = 10, Offset = new Point(0, 4) }
-        };
-
-        var formStack = new VerticalStackLayout { Spacing = 10 };
-        formStack.Add(new Label { Text = "Utwórz nowy grafik", FontAttributes = FontAttributes.Bold, FontSize = 16 });
-
-        var nameEntry = new Entry { Placeholder = "Nazwa (np. Grafik Pielęgniarek - Maj)" };
-        nameEntry.SetBinding(Entry.TextProperty, nameof(SchedulesViewModel.NewName));
-
-        var dateGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Star) }, ColumnSpacing = 10 };
-
-        var startPicker = new DatePicker { Format = "dd.MM.yyyy" };
-        startPicker.SetBinding(DatePicker.DateProperty, nameof(SchedulesViewModel.NewStartDate));
-        dateGrid.Add(new VerticalStackLayout { Children = { new Label { Text = "Data rozpoczęcia", FontSize = 12 }, startPicker } }, 0);
-
-        var endPicker = new DatePicker { Format = "dd.MM.yyyy" };
-        endPicker.SetBinding(DatePicker.DateProperty, nameof(SchedulesViewModel.NewEndDate));
-        dateGrid.Add(new VerticalStackLayout { Children = { new Label { Text = "Data zakończenia", FontSize = 12 }, endPicker } }, 1);
-
-        var professionPicker = new Picker { Title = "Wybierz zawód", TextColor = Color.FromArgb("#333333") };
-        professionPicker.SetBinding(Picker.ItemsSourceProperty, nameof(SchedulesViewModel.Professions));
-        professionPicker.ItemDisplayBinding = new Binding(nameof(Profession.Name));
-        professionPicker.SetBinding(Picker.SelectedItemProperty, nameof(SchedulesViewModel.SelectedProfession));
-
-        var addBtn = new Button { Text = "Utwórz szkielet grafiku", BackgroundColor = Color.FromArgb("#2B5B84"), TextColor = Colors.White, CornerRadius = 8, FontAttributes = FontAttributes.Bold };
-        addBtn.SetBinding(Button.CommandProperty, nameof(SchedulesViewModel.AddScheduleCommand));
-
-        formStack.Add(nameEntry);
-        formStack.Add(dateGrid);
-        formStack.Add(professionPicker);
-        formStack.Add(addBtn);
-
-        formBorder.Content = formStack;
-        mainGrid.Add(formBorder, 0, 0);
-
-        var collectionView = new CollectionView();
-        collectionView.SetBinding(CollectionView.ItemsSourceProperty, nameof(SchedulesViewModel.Schedules));
+        collectionView.SetBinding(ItemsView.ItemsSourceProperty, "Schedules");
 
         collectionView.ItemTemplate = new DataTemplate(() =>
         {
+            var cardGrid = new Grid
+            {
+                ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
+                RowDefinitions = { new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto) },
+                Padding = 15,
+                RowSpacing = 5
+            };
+
             var nameLabel = new Label { FontSize = 16, FontAttributes = FontAttributes.Bold };
-            nameLabel.SetBinding(Label.TextProperty, nameof(Schedule.Name));
+            nameLabel.SetDynamicResource(Label.TextColorProperty, "TextPrimary");
+            nameLabel.SetBinding(Label.TextProperty, "Name");
 
-            var datesLabel = new Label { FontSize = 12, TextColor = Colors.Gray };
-            datesLabel.SetBinding(Label.TextProperty, new Binding(".", converter: new ScheduleDatesConverter()));
+            var datesLabel = new Label { FontSize = 13 };
+            datesLabel.SetDynamicResource(Label.TextColorProperty, "TextSecondary");
+            datesLabel.SetBinding(Label.TextProperty, new MultiBinding
+            {
+                StringFormat = "{0:dd.MM.yyyy} do {1:dd.MM.yyyy}",
+                Bindings = new[] { new Binding("StartDate"), new Binding("EndDate") }
+            });
 
-            var statusLabel = new Label { FontSize = 12, FontAttributes = FontAttributes.Bold, TextColor = Color.FromArgb("#E67E22") };
-            statusLabel.SetBinding(Label.TextProperty, new Binding("Status", converter: new ScheduleStatusConverter()));
+            var statusBadge = new Border
+            {
+                StrokeThickness = 0,
+                BackgroundColor = Color.FromArgb("#DBEAFE"),
+                StrokeShape = new RoundRectangle { CornerRadius = 8 },
+                Padding = new Thickness(8, 4),
+                VerticalOptions = LayoutOptions.Center,
+                Content = new Label
+                {
+                    FontSize = 11,
+                    FontAttributes = FontAttributes.Bold,
+                    TextColor = Color.FromArgb("#1E40AF")
+                }
+            };
+            ((Label)statusBadge.Content).SetBinding(Label.TextProperty, "Status");
 
-            var infoStack = new VerticalStackLayout { VerticalOptions = LayoutOptions.Center, Children = { nameLabel, datesLabel, statusLabel } };
+            cardGrid.Add(nameLabel, 0, 0);
+            cardGrid.Add(datesLabel, 0, 1);
+            cardGrid.Add(statusBadge, 1, 0);
+            Grid.SetRowSpan(statusBadge, 2);
 
-            var generatorBtn = new Button { Text = "Otwórz kalendarz", HeightRequest = 35, BackgroundColor = Color.FromArgb("#2ECC71"), TextColor = Colors.White, CornerRadius = 8, FontAttributes = FontAttributes.Bold };
-            generatorBtn.SetBinding(Button.CommandProperty, new Binding(nameof(SchedulesViewModel.OpenGeneratorCommand), source: _viewModel));
-            generatorBtn.SetBinding(Button.CommandParameterProperty, ".");
-
-            var itemGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) } };
-            itemGrid.Add(infoStack, 0, 0);
-            itemGrid.Add(generatorBtn, 1, 0);
-
-            var card = new Border
+            var cardBorder = new Border
             {
                 BackgroundColor = Colors.White,
+                StrokeThickness = 0,
+                Margin = new Thickness(0, 0, 0, 12),
                 StrokeShape = new RoundRectangle { CornerRadius = 12 },
-                Padding = 15,
-                Margin = new Thickness(0, 0, 0, 10),
-                Content = itemGrid
+                Shadow = new Shadow
+                {
+                    Brush = Colors.Black,
+                    Offset = new Point(0, 4),
+                    Radius = 10,
+                    Opacity = 0.05f
+                },
+                Content = cardGrid
             };
 
-            return card;
+            var tapGesture = new TapGestureRecognizer();
+            tapGesture.Tapped += async (s, e) =>
+            {
+                var border = (Border)s!;
+                var schedule = (Schedule)border.BindingContext;
+
+                await border.ScaleTo(0.97, 100, Easing.CubicOut);
+                await border.ScaleTo(1.0, 100, Easing.CubicIn);
+
+                _viewModel.SelectedSchedule = schedule;
+                if (_viewModel.GoToGeneratorCommand.CanExecute(null))
+                {
+                    _viewModel.GoToGeneratorCommand.Execute(null);
+                }
+            };
+            cardBorder.GestureRecognizers.Add(tapGesture);
+
+            return cardBorder;
         });
 
-        mainGrid.Add(collectionView, 0, 1);
+        var fab = new Button
+        {
+            Text = "+",
+            FontSize = 32,
+            FontAttributes = FontAttributes.Bold,
+            TextColor = Colors.White,
+            WidthRequest = 64,
+            HeightRequest = 64,
+            CornerRadius = 32,
+            HorizontalOptions = LayoutOptions.End,
+            VerticalOptions = LayoutOptions.End,
+            Margin = new Thickness(20),
+            Shadow = new Shadow { Brush = Colors.Black, Offset = new Point(0, 4), Radius = 8, Opacity = 0.2f }
+        };
+        fab.SetDynamicResource(Button.BackgroundColorProperty, "Primary");
+        fab.SetBinding(Button.CommandProperty, "AddScheduleCommand");
+
+        mainGrid.Add(collectionView);
+        mainGrid.Add(fab);
+
         Content = mainGrid;
     }
-}
-
-public class ScheduleDatesConverter : IValueConverter
-{
-    public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-    {
-        if (value is Schedule s) return $"{s.StartDate:dd.MM.yyyy} - {s.EndDate:dd.MM.yyyy}";
-        return string.Empty;
-    }
-    public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) => throw new NotImplementedException();
-}
-
-public class ScheduleStatusConverter : IValueConverter
-{
-    public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-    {
-        if (value is EasySchedule.Domain.Enums.ScheduleStatus status)
-        {
-            return status switch
-            {
-                EasySchedule.Domain.Enums.ScheduleStatus.Draft => "Szkic (W przygotowaniu)",
-                EasySchedule.Domain.Enums.ScheduleStatus.Published => "Opublikowany",
-                EasySchedule.Domain.Enums.ScheduleStatus.Archived => "Archiwalny",
-                _ => status.ToString()
-            };
-        }
-        return string.Empty;
-    }
-    public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) => throw new NotImplementedException();
 }

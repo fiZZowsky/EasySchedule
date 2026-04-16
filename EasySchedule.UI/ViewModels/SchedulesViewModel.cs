@@ -22,6 +22,8 @@ public partial class SchedulesViewModel : BaseViewModel
 
     [ObservableProperty] private Profession? _selectedProfession;
 
+    [ObservableProperty] private Schedule? _selectedSchedule;
+
     public SchedulesViewModel(IScheduleService scheduleService, IProfessionService professionService)
     {
         _scheduleService = scheduleService;
@@ -98,11 +100,11 @@ public partial class SchedulesViewModel : BaseViewModel
     }
 
     [RelayCommand]
-    public async Task OpenGeneratorAsync(Schedule schedule)
+    public async Task GoToGeneratorAsync()
     {
-        if (schedule == null) return;
+        if (SelectedSchedule == null) return;
 
-        var navParam = new Dictionary<string, object> { { "Schedule", schedule } };
+        var navParam = new Dictionary<string, object> { { "Schedule", SelectedSchedule } };
         await Shell.Current.GoToAsync(nameof(GeneratorPage), navParam);
     }
 }

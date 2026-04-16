@@ -1,5 +1,4 @@
 using EasySchedule.UI.ViewModels;
-using EasySchedule.Domain.Entities;
 using Microsoft.Maui.Controls.Shapes;
 
 namespace EasySchedule.UI.Views;
@@ -12,113 +11,136 @@ public class TimeOffsPage : ContentPage
     {
         _viewModel = viewModel;
         BindingContext = _viewModel;
-        BackgroundColor = Color.FromArgb("#F5F5F5");
 
-        this.SetBinding(Page.TitleProperty, nameof(TimeOffsViewModel.Title));
+        this.SetDynamicResource(BackgroundColorProperty, "AppBackground");
+        Title = "Urlopy i Zwolnienia";
 
         BuildUI();
+    }
+
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        _viewModel.LoadDataCommand.Execute(null);
     }
 
     private void BuildUI()
     {
         var mainGrid = new Grid
         {
-            Padding = 20,
-            RowDefinitions = { new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star) }
+            RowDefinitions = { new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star) },
+            Padding = 15
         };
 
-        var formBorder = new Border
-        {
-            BackgroundColor = Colors.White,
-            StrokeShape = new RoundRectangle { CornerRadius = 12 },
-            Padding = 15,
-            Margin = new Thickness(0, 0, 0, 20),
-            Shadow = new Shadow { Opacity = 0.05f, Radius = 10, Offset = new Point(0, 4) }
-        };
+        var empPicker = new Picker { Title = "Wybierz pracownika" };
+        empPicker.SetBinding(Picker.ItemsSourceProperty, "Employees");
+        empPicker.ItemDisplayBinding = new Binding("Surname");
+        empPicker.SetBinding(Picker.SelectedItemProperty, "SelectedEmployee");
 
-        var formStack = new VerticalStackLayout { Spacing = 10 };
-        formStack.Add(new Label { Text = "Zgłoś nieobecność", FontAttributes = FontAttributes.Bold });
-
-        var dateGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Star) }, ColumnSpacing = 10 };
+        var typePicker = new Picker { Title = "Rodzaj wolnego" };
+        typePicker.SetBinding(Picker.ItemsSourceProperty, "TimeOffTypes");
+        typePicker.SetBinding(Picker.SelectedItemProperty, "SelectedType");
 
         var startPicker = new DatePicker { Format = "dd.MM.yyyy" };
-        startPicker.SetBinding(DatePicker.DateProperty, nameof(TimeOffsViewModel.NewStartDate));
-        dateGrid.Add(new VerticalStackLayout { Children = { new Label { Text = "Od:", FontSize = 12 }, startPicker } }, 0);
+        startPicker.SetBinding(DatePicker.DateProperty, "NewStartDate");
 
         var endPicker = new DatePicker { Format = "dd.MM.yyyy" };
-        endPicker.SetBinding(DatePicker.DateProperty, nameof(TimeOffsViewModel.NewEndDate));
-        dateGrid.Add(new VerticalStackLayout { Children = { new Label { Text = "Do:", FontSize = 12 }, endPicker } }, 1);
+        endPicker.SetBinding(DatePicker.DateProperty, "NewEndDate");
 
-        var typePicker = new Picker { Title = "Wybierz powód" };
-        typePicker.SetBinding(Picker.ItemsSourceProperty, nameof(TimeOffsViewModel.TimeOffTypes));
-        typePicker.SetBinding(Picker.SelectedItemProperty, nameof(TimeOffsViewModel.SelectedTimeOffType));
+        var addBtn = new Button { Text = "DODAJ ZWOLNIENIE/URLOP", FontAttributes = FontAttributes.Bold, TextColor = Colors.White, CornerRadius = 8 };
+        addBtn.SetDynamicResource(Button.BackgroundColorProperty, "Primary");
+        addBtn.SetBinding(Button.CommandProperty, "AddTimeOffCommand");
 
-        var addBtn = new Button { Text = "Dodaj wolne", BackgroundColor = Color.FromArgb("#2B5B84"), TextColor = Colors.White, CornerRadius = 8 };
-        addBtn.SetBinding(Button.CommandProperty, nameof(TimeOffsViewModel.AddTimeOffCommand));
+        var formCard = new Border
+        {
+            BackgroundColor = Colors.White,
+            StrokeThickness = 0,
+            StrokeShape = new RoundRectangle { CornerRadius = 12 },
+            Padding = 15,
+            Margin = new Thickness(0, 0, 0, 15),
+            Shadow = new Shadow { Brush = Colors.Black, Offset = new Point(0, 4), Radius = 10, Opacity = 0.05f },
+            Content = new VerticalStackLayout
+            {
+                Spacing = 10,
+                Children = {
+                    empPicker, typePicker,
+                    new HorizontalStackLayout { Spacing = 15, Children = { new Label{Text="Od:", VerticalOptions=LayoutOptions.Center}, startPicker, new Label{Text="Do:", VerticalOptions=LayoutOptions.Center}, endPicker } },
+                    addBtn
+                }
+            }
+        };
 
-        formStack.Add(dateGrid);
-        formStack.Add(typePicker);
-        formStack.Add(addBtn);
-
-        formBorder.Content = formStack;
-        mainGrid.Add(formBorder, 0, 0);
-
-        var collectionView = new CollectionView();
-        collectionView.SetBinding(CollectionView.ItemsSourceProperty, nameof(TimeOffsViewModel.TimeOffs));
+        var collectionView = new CollectionView { SelectionMode = SelectionMode.None };
+        collectionView.SetBinding(ItemsView.ItemsSourceProperty, "TimeOffs");
 
         collectionView.ItemTemplate = new DataTemplate(() =>
         {
-            var dateLabel = new Label { FontSize = 16, FontAttributes = FontAttributes.Bold };
-            dateLabel.SetBinding(Label.TextProperty, new Binding(".", converter: new TimeOffDatesConverter()));
-
-            var typeLabel = new Label { FontSize = 12, TextColor = Colors.Gray };
-            typeLabel.SetBinding(Label.TextProperty, nameof(TimeOff.Type));
-
-            var deleteBtn = new ImageButton { Source = "dotnet_bot.png", WidthRequest = 24, VerticalOptions = LayoutOptions.Center };
-            deleteBtn.SetBinding(ImageButton.CommandProperty, new Binding(nameof(TimeOffsViewModel.DeleteTimeOffCommand), source: _viewModel));
-            deleteBtn.SetBinding(ImageButton.CommandParameterProperty, ".");
-
-            var card = new Border
+            var cardGrid = new Grid
             {
-                BackgroundColor = Colors.White,
-                StrokeShape = new RoundRectangle { CornerRadius = 12 },
+                ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
+                RowDefinitions = { new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto) },
                 Padding = 15,
-                Margin = new Thickness(0, 0, 0, 10),
-                Content = new Grid
-                {
-                    ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
-                    Children =
-                    {
-                        new VerticalStackLayout {
-                            VerticalOptions = LayoutOptions.Center,
-                            Children = { dateLabel, typeLabel }
-                        },
-                        deleteBtn
-                    }
-                }
+                RowSpacing = 5
             };
 
-            Grid.SetColumn(card.Content.As<Grid>().Children[0] as BindableObject, 0);
-            Grid.SetColumn(card.Content.As<Grid>().Children[1] as BindableObject, 1);
+            var nameLabel = new Label { FontSize = 16, FontAttributes = FontAttributes.Bold };
+            nameLabel.SetDynamicResource(Label.TextColorProperty, "TextPrimary");
+            nameLabel.SetBinding(Label.TextProperty, new MultiBinding
+            {
+                StringFormat = "{0} {1}",
+                Bindings = new[] { new Binding("Employee.Name"), new Binding("Employee.Surname") }
+            });
 
-            return card;
+            var datesLabel = new Label { FontSize = 13 };
+            datesLabel.SetDynamicResource(Label.TextColorProperty, "TextSecondary");
+            datesLabel.SetBinding(Label.TextProperty, new MultiBinding
+            {
+                StringFormat = "{0:dd.MM.yyyy} - {1:dd.MM.yyyy} ({2})",
+                Bindings = new[] { new Binding("StartDate"), new Binding("EndDate"), new Binding("Type") }
+            });
+
+            var deleteBtn = new Button
+            {
+                Text = "Usuń",
+                BackgroundColor = Color.FromArgb("#FEE2E2"),
+                TextColor = Color.FromArgb("#DC2626"),
+                FontSize = 12,
+                CornerRadius = 6,
+                HeightRequest = 32,
+                Padding = new Thickness(10, 0)
+            };
+            deleteBtn.SetBinding(Button.CommandProperty, new Binding("DeleteTimeOffCommand", source: _viewModel));
+            deleteBtn.SetBinding(Button.CommandParameterProperty, ".");
+
+            cardGrid.Add(nameLabel, 0, 0);
+            cardGrid.Add(datesLabel, 0, 1);
+            cardGrid.Add(deleteBtn, 1, 0);
+            Grid.SetRowSpan(deleteBtn, 2);
+
+            var cardBorder = new Border
+            {
+                BackgroundColor = Colors.White,
+                StrokeThickness = 0,
+                Margin = new Thickness(0, 0, 0, 10),
+                StrokeShape = new RoundRectangle { CornerRadius = 12 },
+                Shadow = new Shadow { Brush = Colors.Black, Offset = new Point(0, 2), Radius = 8, Opacity = 0.03f },
+                Content = cardGrid
+            };
+
+            var tapGesture = new TapGestureRecognizer();
+            tapGesture.Tapped += async (s, e) =>
+            {
+                var border = (Border)s!;
+                await border.ScaleTo(0.97, 100, Easing.CubicOut);
+                await border.ScaleTo(1.0, 100, Easing.CubicIn);
+            };
+            cardBorder.GestureRecognizers.Add(tapGesture);
+
+            return cardBorder;
         });
 
+        mainGrid.Add(formCard, 0, 0);
         mainGrid.Add(collectionView, 0, 1);
         Content = mainGrid;
     }
-}
-
-public class TimeOffDatesConverter : IValueConverter
-{
-    public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-    {
-        if (value is TimeOff t)
-        {
-            return $"{t.StartDate:dd.MM.yyyy} - {t.EndDate:dd.MM.yyyy}";
-        }
-        return string.Empty;
-    }
-
-    public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) => throw new NotImplementedException();
 }

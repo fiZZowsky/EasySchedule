@@ -1,59 +1,53 @@
-﻿using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EasySchedule.Application.Interfaces.Services;
 using EasySchedule.Domain.Entities;
 using EasySchedule.Domain.Enums;
+using System.Collections.ObjectModel;
 
 namespace EasySchedule.UI.ViewModels;
 
-[QueryProperty(nameof(CurrentEmployee), "Employee")]
 public partial class TimeOffsViewModel : BaseViewModel
 {
     private readonly ITimeOffService _timeOffService;
-
-    [ObservableProperty]
-    private Employee _currentEmployee;
+    private readonly IEmployeeService _employeeService;
 
     public ObservableCollection<TimeOff> TimeOffs { get; } = new();
-
-    [ObservableProperty] private DateTime _newStartDate = DateTime.Today;
-    [ObservableProperty] private DateTime _newEndDate = DateTime.Today.AddDays(7);
-    [ObservableProperty] private TimeOffType _selectedTimeOffType = TimeOffType.Vacation;
-
+    public ObservableCollection<Employee> Employees { get; } = new();
     public List<TimeOffType> TimeOffTypes { get; } = Enum.GetValues(typeof(TimeOffType)).Cast<TimeOffType>().ToList();
 
-    public TimeOffsViewModel(ITimeOffService timeOffService)
+    [ObservableProperty] private Employee? _selectedEmployee;
+    [ObservableProperty] private TimeOffType _selectedType;
+    [ObservableProperty] private DateTime _newStartDate = DateTime.Today;
+    [ObservableProperty] private DateTime _newEndDate = DateTime.Today;
+
+    public TimeOffsViewModel(ITimeOffService timeOffService, IEmployeeService employeeService)
     {
         _timeOffService = timeOffService;
-    }
-
-    partial void OnCurrentEmployeeChanged(Employee value)
-    {
-        if (value != null)
-        {
-            Title = $"Urlopy: {value.Name} {value.Surname}";
-            LoadTimeOffsCommand.Execute(null);
-        }
+        _employeeService = employeeService;
+        Title = "Urlopy i Zwolnienia";
     }
 
     [RelayCommand]
-    public async Task LoadTimeOffsAsync()
+    public async Task LoadDataAsync()
     {
-        if (CurrentEmployee == null || IsBusy) return;
-
+        if (IsBusy) return;
         try
         {
             IsBusy = true;
-            var result = await _timeOffService.GetTimeOffsForEmployeeAsync(CurrentEmployee.Id);
 
-            if (result.IsSuccess)
+            var empResult = await _employeeService.GetAllEmployeesAsync();
+            if (empResult.IsSuccess)
+            {
+                Employees.Clear();
+                foreach (var e in empResult.Value) Employees.Add(e);
+            }
+
+            var toResult = await _timeOffService.GetAllTimeOffsAsync();
+            if (toResult.IsSuccess)
             {
                 TimeOffs.Clear();
-                foreach (var t in result.Value.OrderBy(x => x.StartDate))
-                {
-                    TimeOffs.Add(t);
-                }
+                foreach (var to in toResult.Value) TimeOffs.Add(to);
             }
         }
         finally
@@ -65,28 +59,21 @@ public partial class TimeOffsViewModel : BaseViewModel
     [RelayCommand]
     public async Task AddTimeOffAsync()
     {
-        var startDate = DateOnly.FromDateTime(NewStartDate);
-        var endDate = DateOnly.FromDateTime(NewEndDate);
+        if (SelectedEmployee == null) return;
 
-        if (endDate < startDate)
-        {
-            await Shell.Current.DisplayAlertAsync("Błąd", "Data zakończenia nie może być wcześniejsza niż data rozpoczęcia.", "OK");
-            return;
-        }
+        var timeOff = new TimeOff(
+            SelectedEmployee.Id,
+            DateOnly.FromDateTime(NewStartDate),
+            DateOnly.FromDateTime(NewEndDate),
+            SelectedType
+        );
 
-        var newTimeOff = new TimeOff(CurrentEmployee.Id, startDate, endDate, SelectedTimeOffType);
-        var result = await _timeOffService.AddTimeOffAsync(newTimeOff);
+        var result = await _timeOffService.AddTimeOffAsync(timeOff);
 
         if (result.IsSuccess)
         {
-            NewStartDate = DateTime.Today;
-            NewEndDate = DateTime.Today.AddDays(7);
-
-            await LoadTimeOffsAsync();
-        }
-        else
-        {
-            await Shell.Current.DisplayAlertAsync("Błąd", result.Errors.First().Message, "OK");
+            SelectedEmployee = null;
+            await LoadDataAsync();
         }
     }
 
@@ -95,6 +82,9 @@ public partial class TimeOffsViewModel : BaseViewModel
     {
         if (timeOff == null) return;
         var result = await _timeOffService.DeleteTimeOffAsync(timeOff.Id);
-        if (result.IsSuccess) TimeOffs.Remove(timeOff);
+        if (result.IsSuccess)
+        {
+            await LoadDataAsync();
+        }
     }
 }

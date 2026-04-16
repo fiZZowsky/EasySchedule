@@ -23,7 +23,7 @@ public partial class EmployeesViewModel : BaseViewModel
     {
         _employeeService = employeeService;
         _professionService = professionService;
-        Title = "Personel";
+        Title = "Pracownicy";
     }
 
     [RelayCommand]

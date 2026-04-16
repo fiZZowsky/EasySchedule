@@ -1,5 +1,4 @@
 using EasySchedule.UI.ViewModels;
-using EasySchedule.Domain.Entities;
 using Microsoft.Maui.Controls.Shapes;
 
 namespace EasySchedule.UI.Views;
@@ -12,153 +11,128 @@ public class ShiftTypesPage : ContentPage
     {
         _viewModel = viewModel;
         BindingContext = _viewModel;
-        BackgroundColor = Color.FromArgb("#F5F5F5");
+
+        this.SetDynamicResource(BackgroundColorProperty, "AppBackground");
+        Title = "Typy Zmian";
 
         BuildUI();
     }
 
-    protected override async void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
-        await _viewModel.LoadShiftTypesAsync();
+        _viewModel.LoadShiftTypesCommand.Execute(null);
     }
 
     private void BuildUI()
     {
         var mainGrid = new Grid
         {
-            Padding = 20,
-            RowDefinitions = { new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star) }
+            RowDefinitions = { new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star) },
+            Padding = 15
         };
 
-        var formBorder = new Border
+        var entryName = new Entry { Placeholder = "Nazwa (np. Dniówka)" };
+        entryName.SetBinding(Entry.TextProperty, "NewName");
+
+        var entryShort = new Entry { Placeholder = "Skrót (np. D)" };
+        entryShort.SetBinding(Entry.TextProperty, "NewShortName");
+
+        var switchNight = new Switch { VerticalOptions = LayoutOptions.Center };
+        switchNight.SetBinding(Switch.IsToggledProperty, "NewIsNightShift");
+
+        var addBtn = new Button { Text = "DODAJ ZMIANĘ", FontAttributes = FontAttributes.Bold, TextColor = Colors.White, CornerRadius = 8 };
+        addBtn.SetDynamicResource(Button.BackgroundColorProperty, "Primary");
+        addBtn.SetBinding(Button.CommandProperty, "AddShiftTypeCommand");
+
+        var formCard = new Border
         {
             BackgroundColor = Colors.White,
+            StrokeThickness = 0,
             StrokeShape = new RoundRectangle { CornerRadius = 12 },
             Padding = 15,
-            Margin = new Thickness(0, 0, 0, 20),
-            Shadow = new Shadow { Opacity = 0.05f, Radius = 10, Offset = new Point(0, 4) }
-        };
-
-        var formStack = new VerticalStackLayout { Spacing = 10 };
-        formStack.Add(new Label { Text = "Nowy szablon zmiany", FontAttributes = FontAttributes.Bold });
-
-        var nameEntry = new Entry { Placeholder = "Nazwa (np. Poranna)" };
-        nameEntry.SetBinding(Entry.TextProperty, nameof(ShiftTypesViewModel.NewName));
-
-        var shortNameEntry = new Entry { Placeholder = "Skrót (np. P1)", MaxLength = 5 };
-        shortNameEntry.SetBinding(Entry.TextProperty, nameof(ShiftTypesViewModel.NewShortName));
-
-        var timeGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Star) }, ColumnSpacing = 10 };
-
-        var startPicker = new TimePicker();
-        startPicker.SetBinding(TimePicker.TimeProperty, nameof(ShiftTypesViewModel.NewStartTime));
-        timeGrid.Add(new VerticalStackLayout { Children = { new Label { Text = "Start", FontSize = 12 }, startPicker } }, 0);
-
-        var endPicker = new TimePicker();
-        endPicker.SetBinding(TimePicker.TimeProperty, nameof(ShiftTypesViewModel.NewEndTime));
-        timeGrid.Add(new VerticalStackLayout { Children = { new Label { Text = "Koniec", FontSize = 12 }, endPicker } }, 1);
-
-        // Standardowe wiązanie Switcha
-        var nightSwitchControl = new Switch();
-        nightSwitchControl.SetBinding(Switch.IsToggledProperty, nameof(ShiftTypesViewModel.NewIsNightShift));
-
-        var nightSwitch = new HorizontalStackLayout
-        {
-            Spacing = 10,
-            Children = {
-                nightSwitchControl,
-                new Label { Text = "Zmiana nocna", VerticalOptions = LayoutOptions.Center }
+            Margin = new Thickness(0, 0, 0, 15),
+            Shadow = new Shadow { Brush = Colors.Black, Offset = new Point(0, 4), Radius = 10, Opacity = 0.05f },
+            Content = new VerticalStackLayout
+            {
+                Spacing = 10,
+                Children = {
+                    entryName, entryShort,
+                    new HorizontalStackLayout { Spacing = 10, Children = { new Label { Text = "Zmiana nocna?", VerticalOptions = LayoutOptions.Center }, switchNight } },
+                    addBtn
+                }
             }
         };
 
-        var addBtn = new Button { Text = "Dodaj zmianę", BackgroundColor = Color.FromArgb("#2B5B84"), TextColor = Colors.White, CornerRadius = 8 };
-        addBtn.SetBinding(Button.CommandProperty, nameof(ShiftTypesViewModel.AddShiftTypeCommand));
-
-        formStack.Add(nameEntry);
-        formStack.Add(shortNameEntry);
-        formStack.Add(timeGrid);
-        formStack.Add(nightSwitch);
-        formStack.Add(addBtn);
-
-        formBorder.Content = formStack;
-        mainGrid.Add(formBorder, 0, 0);
-
-        var collectionView = new CollectionView();
-        collectionView.SetBinding(CollectionView.ItemsSourceProperty, nameof(ShiftTypesViewModel.ShiftTypes));
+        var collectionView = new CollectionView { SelectionMode = SelectionMode.None };
+        collectionView.SetBinding(ItemsView.ItemsSourceProperty, "ShiftTypes");
 
         collectionView.ItemTemplate = new DataTemplate(() =>
         {
-            var shortNameLabel = new Label { VerticalOptions = LayoutOptions.Center, FontAttributes = FontAttributes.Bold, TextColor = Color.FromArgb("#1976D2") };
-            shortNameLabel.SetBinding(Label.TextProperty, nameof(ShiftType.ShortName));
-
-            var nameLabel = new Label { FontSize = 16, FontAttributes = FontAttributes.Bold };
-            nameLabel.SetBinding(Label.TextProperty, nameof(ShiftType.Name));
-
-            var durationLabel = new Label { FontSize = 12, TextColor = Colors.Gray };
-            durationLabel.SetBinding(Label.TextProperty, new Binding(nameof(ShiftType.Duration), converter: new DurationConverter()));
-
-            var deleteBtn = new ImageButton { Source = "dotnet_bot.png", WidthRequest = 24, VerticalOptions = LayoutOptions.Center };
-            deleteBtn.SetBinding(ImageButton.CommandProperty, new Binding(nameof(ShiftTypesViewModel.DeleteShiftTypeCommand), source: _viewModel));
-            deleteBtn.SetBinding(ImageButton.CommandParameterProperty, ".");
-
-            var card = new Border
+            var cardGrid = new Grid
             {
-                BackgroundColor = Colors.White,
-                StrokeShape = new RoundRectangle { CornerRadius = 12 },
+                ColumnDefinitions = { new ColumnDefinition(50), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
                 Padding = 15,
-                Margin = new Thickness(0, 0, 0, 10),
-                Content = new Grid
-                {
-                    ColumnDefinitions = { new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
-                    Children =
-                    {
-                        new Border {
-                            BackgroundColor = Color.FromArgb("#E3F2FD"), Padding = 10, StrokeShape = new RoundRectangle { CornerRadius = 8 },
-                            Content = shortNameLabel
-                        },
-                        new VerticalStackLayout {
-                            Margin = new Thickness(15, 0), VerticalOptions = LayoutOptions.Center,
-                            Children = {
-                                nameLabel,
-                                durationLabel
-                            }
-                        },
-                        deleteBtn
-                    }
-                }
+                ColumnSpacing = 15
             };
 
-            Grid.SetColumn(card.Content.As<Grid>().Children[0] as BindableObject, 0);
-            Grid.SetColumn(card.Content.As<Grid>().Children[1] as BindableObject, 1);
-            Grid.SetColumn(card.Content.As<Grid>().Children[2] as BindableObject, 2);
+            var shortBadge = new Border
+            {
+                StrokeThickness = 0,
+                BackgroundColor = Color.FromArgb("#DBEAFE"),
+                StrokeShape = new RoundRectangle { CornerRadius = 8 },
+                HeightRequest = 40,
+                WidthRequest = 40,
+                Content = new Label { FontSize = 14, FontAttributes = FontAttributes.Bold, TextColor = Color.FromArgb("#1E40AF"), HorizontalOptions = LayoutOptions.Center, VerticalOptions = LayoutOptions.Center }
+            };
+            ((Label)shortBadge.Content).SetBinding(Label.TextProperty, "ShortName");
 
-            return card;
+            var nameLabel = new Label { FontSize = 16, FontAttributes = FontAttributes.Bold, VerticalOptions = LayoutOptions.Center };
+            nameLabel.SetDynamicResource(Label.TextColorProperty, "TextPrimary");
+            nameLabel.SetBinding(Label.TextProperty, "Name");
+
+            var deleteBtn = new Button
+            {
+                Text = "Usuń",
+                BackgroundColor = Color.FromArgb("#FEE2E2"),
+                TextColor = Color.FromArgb("#DC2626"),
+                FontSize = 12,
+                CornerRadius = 6,
+                HeightRequest = 32,
+                Padding = new Thickness(10, 0),
+                VerticalOptions = LayoutOptions.Center
+            };
+            deleteBtn.SetBinding(Button.CommandProperty, new Binding("DeleteShiftTypeCommand", source: _viewModel));
+            deleteBtn.SetBinding(Button.CommandParameterProperty, ".");
+
+            cardGrid.Add(shortBadge, 0, 0);
+            cardGrid.Add(nameLabel, 1, 0);
+            cardGrid.Add(deleteBtn, 2, 0);
+
+            var cardBorder = new Border
+            {
+                BackgroundColor = Colors.White,
+                StrokeThickness = 0,
+                Margin = new Thickness(0, 0, 0, 10),
+                StrokeShape = new RoundRectangle { CornerRadius = 12 },
+                Shadow = new Shadow { Brush = Colors.Black, Offset = new Point(0, 2), Radius = 8, Opacity = 0.03f },
+                Content = cardGrid
+            };
+
+            var tapGesture = new TapGestureRecognizer();
+            tapGesture.Tapped += async (s, e) =>
+            {
+                var border = (Border)s!;
+                await border.ScaleTo(0.97, 100, Easing.CubicOut);
+                await border.ScaleTo(1.0, 100, Easing.CubicIn);
+            };
+            cardBorder.GestureRecognizers.Add(tapGesture);
+
+            return cardBorder;
         });
 
+        mainGrid.Add(formCard, 0, 0);
         mainGrid.Add(collectionView, 0, 1);
         Content = mainGrid;
     }
-}
-
-public class DurationConverter : IValueConverter
-{
-    public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-    {
-        if (value is TimeSpan duration)
-        {
-            return $"Czas trwania: {duration.TotalHours}h";
-        }
-        return value;
-    }
-
-    public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-    {
-        throw new NotImplementedException();
-    }
-}
-
-public static class GridExtensions
-{
-    public static T As<T>(this object obj) where T : class => obj as T;
 }

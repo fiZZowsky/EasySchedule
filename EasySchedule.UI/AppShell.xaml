@@ -4,17 +4,35 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:EasySchedule.UI.Views"
-    Shell.FlyoutBehavior="Flyout">
+    Shell.FlyoutBehavior="Flyout"
+    FlyoutBackgroundColor="{StaticResource Surface}">
 
-    <FlyoutItem Title="Konfiguracja">
-        <ShellContent Title="Zawody" ContentTemplate="{DataTemplate local:ProfessionsPage}" />
-        <ShellContent Title="Rodzaje Zmian" ContentTemplate="{DataTemplate local:ShiftTypesPage}" />
+    <Shell.FlyoutHeader>
+        <Grid HeightRequest="160" BackgroundColor="{StaticResource Primary}">
+            <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="8">
+                <Border WidthRequest="64" HeightRequest="64" StrokeShape="RoundRectangle 32" BackgroundColor="#3B82F6" StrokeThickness="0">
+                    <Label Text="ES" TextColor="White" FontSize="24" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center"/>
+                </Border>
+                <Label Text="EasySchedule" TextColor="White" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center" />
+                <Label Text="Planowanie Obsady" TextColor="#DBEAFE" FontSize="12" HorizontalOptions="Center" />
+            </VerticalStackLayout>
+        </Grid>
+    </Shell.FlyoutHeader>
+
+    <FlyoutItem Title="Zarządzaj Grafikami" Icon="dotnet_bot.png">
+        <ShellContent Route="SchedulesPage" ContentTemplate="{DataTemplate local:SchedulesPage}" />
     </FlyoutItem>
-    <FlyoutItem Title="Personel">
-        <ShellContent Title="Pracownicy" ContentTemplate="{DataTemplate local:EmployeesPage}" />
+    <FlyoutItem Title="Pracownicy" Icon="dotnet_bot.png">
+        <ShellContent Route="EmployeesPage" ContentTemplate="{DataTemplate local:EmployeesPage}" />
     </FlyoutItem>
-    <FlyoutItem Title="Grafiki">
-        <ShellContent Title="Zarządzaj Grafikami" ContentTemplate="{DataTemplate local:SchedulesPage}" />
+    <FlyoutItem Title="Profesje" Icon="dotnet_bot.png">
+        <ShellContent Route="ProfessionsPage" ContentTemplate="{DataTemplate local:ProfessionsPage}" />
+    </FlyoutItem>
+    <FlyoutItem Title="Typy Zmian" Icon="dotnet_bot.png">
+        <ShellContent Route="ShiftTypesPage" ContentTemplate="{DataTemplate local:ShiftTypesPage}" />
+    </FlyoutItem>
+    <FlyoutItem Title="Urlopy i Zwolnienia" Icon="dotnet_bot.png">
+        <ShellContent Route="TimeOffsPage" ContentTemplate="{DataTemplate local:TimeOffsPage}" />
     </FlyoutItem>
 
 </Shell>

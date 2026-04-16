@@ -1,6 +1,5 @@
-using Microsoft.Maui.Controls.Shapes;
 using EasySchedule.UI.ViewModels;
-using EasySchedule.Domain.Entities;
+using Microsoft.Maui.Controls.Shapes;
 
 namespace EasySchedule.UI.Views;
 
@@ -13,136 +12,106 @@ public class ProfessionsPage : ContentPage
         _viewModel = viewModel;
         BindingContext = _viewModel;
 
-        Title = "Zawody i Stanowiska";
-        BackgroundColor = Color.FromArgb("#F5F5F5");
+        this.SetDynamicResource(BackgroundColorProperty, "AppBackground");
+        Title = "Zarządzanie Profesjami";
 
         BuildUI();
     }
 
-    protected override async void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
-        await _viewModel.LoadProfessionsAsync();
+        _viewModel.LoadProfessionsAsync();
     }
 
     private void BuildUI()
     {
         var mainGrid = new Grid
         {
-            Padding = 20,
-            RowDefinitions =
-            {
-                new RowDefinition { Height = GridLength.Auto },
-                new RowDefinition { Height = GridLength.Star }
-            }
+            RowDefinitions = { new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star) },
+            Padding = 15
         };
 
-        var formBorder = new Border
+        var entryName = new Entry { Placeholder = "Nazwa profesji (np. Pielęgniarka)" };
+        entryName.SetBinding(Entry.TextProperty, "NewName");
+
+        var addBtn = new Button
+        {
+            Text = "DODAJ PROFESJĘ",
+            FontAttributes = FontAttributes.Bold,
+            TextColor = Colors.White,
+            CornerRadius = 8
+        };
+        addBtn.SetDynamicResource(Button.BackgroundColorProperty, "Primary");
+        addBtn.SetBinding(Button.CommandProperty, "AddProfessionCommand");
+
+        var formCard = new Border
         {
             BackgroundColor = Colors.White,
-            StrokeShape = new RoundRectangle { CornerRadius = new CornerRadius(12) },
-            Stroke = Colors.Transparent,
+            StrokeThickness = 0,
+            StrokeShape = new RoundRectangle { CornerRadius = 12 },
             Padding = 15,
-            Margin = new Thickness(0, 0, 0, 20),
-            Shadow = new Shadow { Brush = Brush.Black, Offset = new Point(0, 4), Radius = 10, Opacity = 0.05f }
+            Margin = new Thickness(0, 0, 0, 15),
+            Shadow = new Shadow { Brush = Colors.Black, Offset = new Point(0, 4), Radius = 10, Opacity = 0.05f },
+            Content = new VerticalStackLayout { Spacing = 10, Children = { entryName, addBtn } }
         };
 
-        var formStack = new VerticalStackLayout { Spacing = 15 };
-
-        formStack.Children.Add(new Label { Text = "Dodaj nowy zawód", FontSize = 16, FontAttributes = FontAttributes.Bold, TextColor = Color.FromArgb("#333333") });
-
-        var nameEntry = new Entry { Placeholder = "Nazwa stanowiska (np. Pielęgniarka)", BackgroundColor = Color.FromArgb("#FAFAFA"), TextColor = Color.FromArgb("#333333") };
-        nameEntry.SetBinding(Entry.TextProperty, nameof(ProfessionsViewModel.NewProfessionName));
-        formStack.Children.Add(nameEntry);
-
-        var switchStack = new HorizontalStackLayout { Spacing = 10, VerticalOptions = LayoutOptions.Center };
-        var nightSwitch = new Switch();
-        nightSwitch.SetBinding(Switch.IsToggledProperty, nameof(ProfessionsViewModel.NewProfessionCanWorkNights));
-
-        switchStack.Children.Add(nightSwitch);
-        switchStack.Children.Add(new Label { Text = "Może pracować na nocki", VerticalOptions = LayoutOptions.Center, TextColor = Color.FromArgb("#666666") });
-        formStack.Children.Add(switchStack);
-
-        var addButton = new Button { Text = "Dodaj stanowisko", BackgroundColor = Color.FromArgb("#2B5B84"), TextColor = Colors.White, CornerRadius = 8, FontAttributes = FontAttributes.Bold };
-        addButton.SetBinding(Button.CommandProperty, nameof(ProfessionsViewModel.AddProfessionCommand));
-        formStack.Children.Add(addButton);
-
-        formBorder.Content = formStack;
-        mainGrid.Add(formBorder, 0, 0);
-
-        var indicator = new ActivityIndicator { HorizontalOptions = LayoutOptions.Center, VerticalOptions = LayoutOptions.Center, Color = Color.FromArgb("#2B5B84") };
-        indicator.SetBinding(ActivityIndicator.IsRunningProperty, nameof(ProfessionsViewModel.IsBusy));
-        indicator.SetBinding(ActivityIndicator.IsVisibleProperty, nameof(ProfessionsViewModel.IsBusy));
-        mainGrid.Add(indicator, 0, 1);
-
-        var collectionView = new CollectionView();
-        collectionView.SetBinding(CollectionView.ItemsSourceProperty, nameof(ProfessionsViewModel.Professions));
-        collectionView.SetBinding(CollectionView.IsVisibleProperty, nameof(ProfessionsViewModel.IsNotBusy));
+        var collectionView = new CollectionView { SelectionMode = SelectionMode.None };
+        collectionView.SetBinding(ItemsView.ItemsSourceProperty, "Professions");
 
         collectionView.ItemTemplate = new DataTemplate(() =>
         {
+            var cardGrid = new Grid
+            {
+                ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
+                Padding = 15
+            };
+
+            var nameLabel = new Label { FontSize = 16, FontAttributes = FontAttributes.Bold, VerticalOptions = LayoutOptions.Center };
+            nameLabel.SetDynamicResource(Label.TextColorProperty, "TextPrimary");
+            nameLabel.SetBinding(Label.TextProperty, "Name");
+
+            var deleteBtn = new Button
+            {
+                Text = "Usuń",
+                BackgroundColor = Color.FromArgb("#FEE2E2"),
+                TextColor = Color.FromArgb("#DC2626"),
+                FontSize = 12,
+                CornerRadius = 6,
+                HeightRequest = 32,
+                Padding = new Thickness(10, 0)
+            };
+            deleteBtn.SetBinding(Button.CommandProperty, new Binding("DeleteProfessionCommand", source: _viewModel));
+            deleteBtn.SetBinding(Button.CommandParameterProperty, ".");
+
+            cardGrid.Add(nameLabel, 0, 0);
+            cardGrid.Add(deleteBtn, 1, 0);
+
             var cardBorder = new Border
             {
                 BackgroundColor = Colors.White,
-                StrokeShape = new RoundRectangle { CornerRadius = new CornerRadius(12) },
-                Stroke = Colors.Transparent,
-                Padding = 15,
+                StrokeThickness = 0,
                 Margin = new Thickness(0, 0, 0, 10),
-                Shadow = new Shadow { Brush = Brush.Black, Offset = new Point(0, 2), Radius = 5, Opacity = 0.03f }
+                StrokeShape = new RoundRectangle { CornerRadius = 12 },
+                Shadow = new Shadow { Brush = Colors.Black, Offset = new Point(0, 2), Radius = 8, Opacity = 0.03f },
+                Content = cardGrid
             };
 
-            var itemGrid = new Grid
+            var tapGesture = new TapGestureRecognizer();
+            tapGesture.Tapped += async (s, e) =>
             {
-                ColumnDefinitions =
-                {
-                    new ColumnDefinition { Width = GridLength.Star },
-                    new ColumnDefinition { Width = GridLength.Auto }
-                }
+                var border = (Border)s!;
+                await border.ScaleTo(0.97, 100, Easing.CubicOut);
+                await border.ScaleTo(1.0, 100, Easing.CubicIn);
             };
+            cardBorder.GestureRecognizers.Add(tapGesture);
 
-            var infoStack = new VerticalStackLayout { VerticalOptions = LayoutOptions.Center };
-
-            var nameLabel = new Label { FontSize = 16, FontAttributes = FontAttributes.Bold, TextColor = Color.FromArgb("#333333") };
-            nameLabel.SetBinding(Label.TextProperty, nameof(Profession.Name));
-
-            var cannotWorkNightsLabel = new Label { Text = "Brak uprawnień do nocek", FontSize = 12, TextColor = Color.FromArgb("#E74C3C") };
-            cannotWorkNightsLabel.SetBinding(Label.IsVisibleProperty, new Binding(nameof(Profession.CanWorkNightShifts), converter: new InverseBoolConverter()));
-
-            var canWorkNightsLabel = new Label { Text = "Może pracować w nocy", FontSize = 12, TextColor = Color.FromArgb("#2ECC71") };
-            canWorkNightsLabel.SetBinding(Label.IsVisibleProperty, nameof(Profession.CanWorkNightShifts));
-
-            infoStack.Children.Add(nameLabel);
-            infoStack.Children.Add(cannotWorkNightsLabel);
-            infoStack.Children.Add(canWorkNightsLabel);
-
-            itemGrid.Add(infoStack, 0, 0);
-
-            var deleteBtn = new ImageButton
-            {
-                Source = "dotnet_bot.png",
-                WidthRequest = 24,
-                HeightRequest = 24,
-                BackgroundColor = Colors.Transparent,
-                VerticalOptions = LayoutOptions.Center
-            };
-
-            deleteBtn.SetBinding(ImageButton.CommandProperty, new Binding("BindingContext.DeleteProfessionCommand", source: this));
-            deleteBtn.SetBinding(ImageButton.CommandParameterProperty, ".");
-
-            itemGrid.Add(deleteBtn, 1, 0);
-
-            cardBorder.Content = itemGrid;
             return cardBorder;
         });
 
+        mainGrid.Add(formCard, 0, 0);
         mainGrid.Add(collectionView, 0, 1);
 
         Content = mainGrid;
     }
-}
-
-public class InverseBoolConverter : IValueConverter
-{
-    public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) => !(bool)value;
-    public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) => !(bool)value;
 }
