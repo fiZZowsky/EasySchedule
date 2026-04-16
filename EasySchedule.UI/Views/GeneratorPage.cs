@@ -249,6 +249,10 @@ public class GeneratorPage : ContentPage
         var actionsStack = new HorizontalStackLayout { Spacing = 10, HorizontalOptions = LayoutOptions.Center };
         actionsStack.SetBinding(HorizontalStackLayout.IsVisibleProperty, nameof(GeneratorViewModel.HasGeneratedSchedule));
 
+        var editBtn = new Button { Text = "Edytuj Grafik", BackgroundColor = Color.FromArgb("#F39C12"), TextColor = Colors.White };
+        editBtn.SetBinding(Button.CommandProperty, "GoToEditPageCommand");
+        editBtn.SetBinding(Button.IsVisibleProperty, nameof(GeneratorViewModel.IsEditable));
+
         var saveDraftBtn = new Button { Text = "Zapisz Szkic", BackgroundColor = Color.FromArgb("#2B5B84"), TextColor = Colors.White };
         saveDraftBtn.SetBinding(Button.CommandProperty, nameof(GeneratorViewModel.SaveDraftCommand));
         saveDraftBtn.SetBinding(Button.IsVisibleProperty, nameof(GeneratorViewModel.IsEditable));
@@ -260,6 +264,7 @@ public class GeneratorPage : ContentPage
         var pdfBtn = new Button { Text = "Eksport PDF", BackgroundColor = Colors.DarkRed, TextColor = Colors.White };
         pdfBtn.SetBinding(Button.CommandProperty, nameof(GeneratorViewModel.ExportPdfCommand));
 
+        actionsStack.Add(editBtn);
         actionsStack.Add(saveDraftBtn);
         actionsStack.Add(publishBtn);
         actionsStack.Add(pdfBtn);

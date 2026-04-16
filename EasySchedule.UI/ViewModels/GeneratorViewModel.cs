@@ -1,9 +1,10 @@
-﻿using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EasySchedule.Application.Interfaces.Services;
 using EasySchedule.Domain.Entities;
 using EasySchedule.Domain.Enums;
+using EasySchedule.UI.Views;
+using System.Collections.ObjectModel;
 
 namespace EasySchedule.UI.ViewModels;
 
@@ -339,6 +340,38 @@ public partial class GeneratorViewModel : BaseViewModel
         {
             await Shell.Current.DisplayAlertAsync("Błąd PDF", exportResult.Errors.First().Message, "OK");
         }
+    }
+
+    [RelayCommand]
+    public async Task GoToEditPageAsync()
+    {
+        if (CurrentSchedule == null || !ProposedAssignments.Any())
+        {
+            await Shell.Current.DisplayAlert("Błąd", "Najpierw wygeneruj grafik, aby móc go edytować.", "OK");
+            return;
+        }
+
+        var assignmentsCopy = ProposedAssignments.Select(a => new ShiftAssignment(a.ScheduleId, a.EmployeeId, a.ShiftTypeId, a.Date)).ToList();
+
+        var navParams = new Dictionary<string, object>
+    {
+        { "Schedule", CurrentSchedule },
+        { "Assignments", assignmentsCopy },
+        { "ApplyCallback", new Action<List<ShiftAssignment>>(ApplyEditedAssignments) }
+    };
+
+        await Shell.Current.GoToAsync(nameof(EditSchedulePage), navParams);
+    }
+
+    private void ApplyEditedAssignments(List<ShiftAssignment> updatedAssignments)
+    {
+        ProposedAssignments.Clear();
+        foreach (var a in updatedAssignments)
+        {
+            ProposedAssignments.Add(a);
+        }
+
+        BuildCalendarMatrix(ProposedAssignments.ToList());
     }
 
     public partial class ShiftRequirementViewModel : ObservableObject

@@ -10,6 +10,7 @@ namespace EasySchedule.UI
 
             Routing.RegisterRoute(nameof(EasySchedule.UI.Views.TimeOffsPage), typeof(EasySchedule.UI.Views.TimeOffsPage));
             Routing.RegisterRoute(nameof(GeneratorPage), typeof(GeneratorPage));
+            Routing.RegisterRoute(nameof(EditSchedulePage), typeof(EditSchedulePage));
         }
     }
 }
