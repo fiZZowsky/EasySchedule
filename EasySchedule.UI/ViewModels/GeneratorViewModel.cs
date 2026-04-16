@@ -1,9 +1,9 @@
-﻿using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EasySchedule.Application.Interfaces.Services;
 using EasySchedule.Domain.Entities;
 using EasySchedule.Domain.Enums;
+using System.Collections.ObjectModel;
 
 namespace EasySchedule.UI.ViewModels;
 
@@ -23,6 +23,9 @@ public partial class GeneratorViewModel : BaseViewModel
     [ObservableProperty] private int _maxShiftsPerWeek = 5;
 
     public ObservableCollection<ShiftAssignment> ProposedAssignments { get; } = new();
+
+    [ObservableProperty] private ObservableCollection<DateOnly> _calendarDays = new();
+    [ObservableProperty] private ObservableCollection<CalendarRow> _calendarRows = new();
 
     [ObservableProperty] private ObservableCollection<ShiftRequirementViewModel> _staffingRequirements = new();
 
@@ -199,9 +202,54 @@ public partial class GeneratorViewModel : BaseViewModel
         if (result.IsSuccess)
         {
             foreach (var a in result.Value) ProposedAssignments.Add(a);
+
+            BuildCalendarMatrix(result.Value);
+
             await Shell.Current.DisplayAlertAsync("Sukces", "Udało się ułożyć propozycję grafiku!", "OK");
         }
         IsBusy = false;
+    }
+
+    private void BuildCalendarMatrix(List<ShiftAssignment> assignments)
+    {
+        CalendarDays.Clear();
+        CalendarRows.Clear();
+
+        if (!assignments.Any()) return;
+
+        var current = CurrentSchedule.StartDate;
+        while (current <= CurrentSchedule.EndDate)
+        {
+            CalendarDays.Add(current);
+            current = current.AddDays(1);
+        }
+
+        var groupedByEmployee = assignments.GroupBy(a => a.EmployeeId);
+
+        foreach (var group in groupedByEmployee)
+        {
+            var employeeName = group.First().Employee?.Surname ?? "Nieznany";
+            var row = new CalendarRow { EmployeeName = employeeName };
+
+            foreach (var day in CalendarDays)
+            {
+                var shiftForDay = group.FirstOrDefault(a => a.Date == day);
+                if (shiftForDay != null)
+                {
+                    row.Cells.Add(new CalendarCell
+                    {
+                        Date = day,
+                        ShiftShortName = shiftForDay.ShiftType?.ShortName ?? "?",
+                        BackgroundColor = shiftForDay.ShiftType?.IsNightShift == true ? Color.FromArgb("#2C3E50") : Color.FromArgb("#3498DB")
+                    });
+                }
+                else
+                {
+                    row.Cells.Add(new CalendarCell { Date = day });
+                }
+            }
+            CalendarRows.Add(row);
+        }
     }
 
     [RelayCommand]
@@ -235,5 +283,19 @@ public partial class GeneratorViewModel : BaseViewModel
         public string ShiftName { get; set; } = string.Empty;
         public DateOnly SpecificDate { get; set; }
         [ObservableProperty] private int _count;
+    }
+
+    public class CalendarCell
+    {
+        public DateOnly Date { get; set; }
+        public string ShiftShortName { get; set; } = string.Empty;
+        public Color BackgroundColor { get; set; } = Colors.Transparent;
+        public bool HasShift => !string.IsNullOrEmpty(ShiftShortName);
+    }
+
+    public class CalendarRow
+    {
+        public string EmployeeName { get; set; } = string.Empty;
+        public List<CalendarCell> Cells { get; set; } = new();
     }
 }
