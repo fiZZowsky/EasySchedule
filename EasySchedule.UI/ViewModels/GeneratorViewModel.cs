@@ -256,8 +256,21 @@ public partial class GeneratorViewModel : BaseViewModel
     public async Task SaveScheduleAsync()
     {
         if (!ProposedAssignments.Any()) return;
+
         IsBusy = true;
-        foreach (var assignment in ProposedAssignments) await _assignmentService.AssignShiftAsync(assignment);
+
+        foreach (var assignment in ProposedAssignments)
+        {
+            var cleanAssignment = new ShiftAssignment(
+                assignment.ScheduleId,
+                assignment.EmployeeId,
+                assignment.ShiftTypeId,
+                assignment.Date
+            );
+
+            await _assignmentService.AssignShiftAsync(cleanAssignment);
+        }
+
         IsBusy = false;
         await Shell.Current.DisplayAlertAsync("Zapisano", "Grafik został zapisany w bazie danych.", "OK");
     }
@@ -266,8 +279,23 @@ public partial class GeneratorViewModel : BaseViewModel
     public async Task ExportPdfAsync()
     {
         if (CurrentSchedule == null) return;
-        var exportResult = await _pdfExportService.ExportScheduleToPdfAsync(CurrentSchedule);
-        if (exportResult.IsSuccess) await Shell.Current.DisplayAlertAsync("PDF", "Plik PDF został wygenerowany w pamięci.", "OK");
+
+        IsBusy = true;
+        var exportResult = await _pdfExportService.ExportScheduleToPdfAsync(CurrentSchedule, ProposedAssignments);
+        IsBusy = false;
+
+        if (exportResult.IsSuccess)
+        {
+            await Share.Default.RequestAsync(new ShareFileRequest
+            {
+                Title = $"Udostępnij {CurrentSchedule.Name}",
+                File = new ShareFile(exportResult.Value)
+            });
+        }
+        else
+        {
+            await Shell.Current.DisplayAlertAsync("Błąd", exportResult.Errors.First().Message, "OK");
+        }
     }
 
     public partial class ShiftRequirementViewModel : ObservableObject

@@ -5,5 +5,5 @@ namespace EasySchedule.Application.Interfaces.Services;
 
 public interface IPdfExportService
 {
-    Task<Result<byte[]>> ExportScheduleToPdfAsync(Schedule schedule);
+    Task<Result<string>> ExportScheduleToPdfAsync(Schedule schedule, IEnumerable<ShiftAssignment> assignments);
 }
