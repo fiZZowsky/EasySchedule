@@ -26,6 +26,7 @@ public partial class GeneratorViewModel : BaseViewModel
 
     [ObservableProperty] private ObservableCollection<DateOnly> _calendarDays = new();
     [ObservableProperty] private ObservableCollection<CalendarRow> _calendarRows = new();
+    [ObservableProperty] private bool _hasGeneratedSchedule;
 
     [ObservableProperty] private ObservableCollection<ShiftRequirementViewModel> _staffingRequirements = new();
 
@@ -56,6 +57,9 @@ public partial class GeneratorViewModel : BaseViewModel
         {
             Title = $"Generator: {value.Name}";
             OverrideDate = value.StartDate.ToDateTime(TimeOnly.MinValue);
+
+            HasGeneratedSchedule = false;
+
             LoadDataCommand.Execute(null);
         }
     }
@@ -168,6 +172,7 @@ public partial class GeneratorViewModel : BaseViewModel
     {
         if (CurrentSchedule == null) return;
         IsBusy = true;
+        HasGeneratedSchedule = false;
         ProposedAssignments.Clear();
 
         var settings = new ScheduleSettings(MaxConsecutiveDays, MinRestHours, MaxShiftsPerWeek);
@@ -204,7 +209,7 @@ public partial class GeneratorViewModel : BaseViewModel
             foreach (var a in result.Value) ProposedAssignments.Add(a);
 
             BuildCalendarMatrix(result.Value);
-
+            HasGeneratedSchedule = true;
             await Shell.Current.DisplayAlertAsync("Sukces", "Udało się ułożyć propozycję grafiku!", "OK");
         }
         IsBusy = false;
@@ -213,7 +218,6 @@ public partial class GeneratorViewModel : BaseViewModel
     private void BuildCalendarMatrix(List<ShiftAssignment> assignments)
     {
         CalendarDays.Clear();
-        CalendarRows.Clear();
 
         if (!assignments.Any()) return;
 

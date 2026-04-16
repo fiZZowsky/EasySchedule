@@ -134,7 +134,8 @@ public class GeneratorPage : ContentPage
             }
         };
 
-        var resultsLabel = new Label { Text = "Podgląd grafiku (Siatka):", FontAttributes = FontAttributes.Bold, Margin = new Thickness(0, 20, 0, 5) };
+        var resultsLabel = new Label { Text = "Podgląd grafiku:", FontAttributes = FontAttributes.Bold, Margin = new Thickness(0, 20, 0, 5) };
+        resultsLabel.SetBinding(Label.IsVisibleProperty, nameof(GeneratorViewModel.HasGeneratedSchedule));
 
         var matrixGrid = new Grid
         {
@@ -145,6 +146,7 @@ public class GeneratorPage : ContentPage
             Margin = new Thickness(0, 0, 0, 15)
         };
 
+        matrixGrid.SetBinding(Grid.IsVisibleProperty, nameof(GeneratorViewModel.HasGeneratedSchedule));
         matrixGrid.Add(new Border { BackgroundColor = Color.FromArgb("#ECF0F1"), Stroke = Color.FromArgb("#BDC3C7") }, 0, 0);
 
         var dateHeaderStack = new HorizontalStackLayout { Spacing = 2 };
@@ -197,6 +199,7 @@ public class GeneratorPage : ContentPage
         matrixGrid.Add(mainContentScroll, 1, 1);
 
         var actionsStack = new HorizontalStackLayout { Spacing = 10, HorizontalOptions = LayoutOptions.Center };
+        actionsStack.SetBinding(HorizontalStackLayout.IsVisibleProperty, nameof(GeneratorViewModel.HasGeneratedSchedule));
         var saveBtn = new Button { Text = "Zapisz w bazie", BackgroundColor = Color.FromArgb("#2B5B84"), TextColor = Colors.White };
         saveBtn.SetBinding(Button.CommandProperty, nameof(GeneratorViewModel.SaveScheduleCommand));
 
