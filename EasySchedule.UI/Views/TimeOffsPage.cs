@@ -29,6 +29,8 @@ public class TimeOffsPage : ContentPage
 
     private void BuildUI()
     {
+        var mainScroll = new ScrollView();
+
         var mainGrid = new Grid
         {
             RowDefinitions = { new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star) },
@@ -74,6 +76,32 @@ public class TimeOffsPage : ContentPage
             }
         };
 
+        var listHeaderGrid = new Grid
+        {
+            ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
+            Margin = new Thickness(0, 5, 0, 10)
+        };
+
+        var listLabel = new Label { Text = "Lista wpisów:", FontAttributes = FontAttributes.Bold, VerticalOptions = LayoutOptions.Center };
+
+        var deleteAllBtn = new Button
+        {
+            Text = "Usuń wszystko",
+            BackgroundColor = Colors.Transparent,
+            TextColor = Color.FromArgb("#DC2626"),
+            FontSize = 13,
+            FontAttributes = FontAttributes.Bold,
+            Padding = new Thickness(10, 0),
+            VerticalOptions = LayoutOptions.Center,
+            HeightRequest = 35
+        };
+
+        deleteAllBtn.SetBinding(Button.CommandProperty, "DeleteAllTimeOffsCommand");
+        deleteAllBtn.SetBinding(Button.IsVisibleProperty, nameof(TimeOffsViewModel.HasTimeOffs));
+
+        listHeaderGrid.Add(listLabel, 0, 0);
+        listHeaderGrid.Add(deleteAllBtn, 1, 0);
+
         var collectionView = new CollectionView { SelectionMode = SelectionMode.None };
         collectionView.SetBinding(ItemsView.ItemsSourceProperty, "TimeOffs");
 
@@ -97,15 +125,16 @@ public class TimeOffsPage : ContentPage
 
             var datesLabel = new Label { FontSize = 13 };
             datesLabel.SetDynamicResource(Label.TextColorProperty, "TextSecondary");
+
             datesLabel.SetBinding(Label.TextProperty, new MultiBinding
             {
-                StringFormat = "{0:dd.MM.yyyy} - {1:dd.MM.yyyy} ({2})",
                 Bindings = new BindingBase[]
                 {
                     new Binding("StartDate"),
                     new Binding("EndDate"),
                     new Binding("Type", converter: new TimeOffTypeConverter())
-                }
+                },
+                Converter = new TimeOffDateRangeConverter()
             });
 
             var deleteBtn = new Button
@@ -139,20 +168,13 @@ public class TimeOffsPage : ContentPage
                 Content = cardGrid
             };
 
-            var tapGesture = new TapGestureRecognizer();
-            tapGesture.Tapped += async (s, e) =>
-            {
-                var border = (Border)s!;
-                await border.ScaleTo(0.97, 100, Easing.CubicOut);
-                await border.ScaleTo(1.0, 100, Easing.CubicIn);
-            };
-            cardBorder.GestureRecognizers.Add(tapGesture);
-
             return cardBorder;
         });
 
         mainGrid.Add(formCard, 0, 0);
-        mainGrid.Add(collectionView, 0, 1);
-        Content = mainGrid;
+        mainGrid.Add(new VerticalStackLayout { Children = { listHeaderGrid, collectionView } }, 0, 1);
+
+        mainScroll.Content = mainGrid;
+        Content = mainScroll;
     }
 }

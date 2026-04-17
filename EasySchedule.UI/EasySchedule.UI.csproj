@@ -89,8 +89,4 @@
 	  <ProjectReference Include="..\EasySchedule.Infrastructure\EasySchedule.Infrastructure.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="Models\" />
-	</ItemGroup>
-
 </Project>

@@ -21,6 +21,8 @@ public partial class TimeOffsViewModel : BaseViewModel
     [ObservableProperty] private DateTime _newStartDate = DateTime.Today;
     [ObservableProperty] private DateTime _newEndDate = DateTime.Today;
 
+    [ObservableProperty] private bool _hasTimeOffs;
+
     public TimeOffsViewModel(ITimeOffService timeOffService, IEmployeeService employeeService)
     {
         _timeOffService = timeOffService;
@@ -48,6 +50,8 @@ public partial class TimeOffsViewModel : BaseViewModel
             {
                 TimeOffs.Clear();
                 foreach (var to in toResult.Value) TimeOffs.Add(to);
+
+                HasTimeOffs = TimeOffs.Any();
             }
         }
         finally
@@ -75,6 +79,10 @@ public partial class TimeOffsViewModel : BaseViewModel
             SelectedEmployee = null;
             await LoadDataAsync();
         }
+        else
+        {
+            await Shell.Current.DisplayAlertAsync("Błąd", result.Errors.First().Message, "OK");
+        }
     }
 
     [RelayCommand]
@@ -82,6 +90,20 @@ public partial class TimeOffsViewModel : BaseViewModel
     {
         if (timeOff == null) return;
         var result = await _timeOffService.DeleteTimeOffAsync(timeOff.Id);
+        if (result.IsSuccess)
+        {
+            await LoadDataAsync();
+        }
+    }
+
+    [RelayCommand]
+    public async Task DeleteAllTimeOffsAsync()
+    {
+        bool confirm = await Shell.Current.DisplayAlertAsync("Usuń wszystko", "Czy na pewno chcesz usunąć WSZYSTKIE wpisy urlopów i zwolnień? Tej operacji nie można cofnąć.", "Tak, usuń", "Anuluj");
+
+        if (!confirm) return;
+
+        var result = await _timeOffService.DeleteAllTimeOffsAsync();
         if (result.IsSuccess)
         {
             await LoadDataAsync();

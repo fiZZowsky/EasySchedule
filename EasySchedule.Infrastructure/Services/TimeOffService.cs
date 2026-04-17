@@ -71,4 +71,10 @@ public class TimeOffService : ITimeOffService
         await _timeOffRepository.DeleteAsync(timeOff);
         return Result.Ok();
     }
+
+    public async Task<Result> DeleteAllTimeOffsAsync()
+    {
+        await _timeOffRepository.DeleteAllAsync();
+        return Result.Ok();
+    }
 }

@@ -45,4 +45,10 @@ public class TimeOffRepository : ITimeOffRepository
         _dbContext.TimeOffs.Remove(timeOff);
         await _dbContext.SaveChangesAsync();
     }
+
+    public async Task DeleteAllAsync()
+    {
+        _dbContext.TimeOffs.RemoveRange(_dbContext.TimeOffs);
+        await _dbContext.SaveChangesAsync();
+    }
 }

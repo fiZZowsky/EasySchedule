@@ -10,4 +10,5 @@ public interface ITimeOffService
     Task<Result> AddTimeOffAsync(TimeOff timeOff);
     Task<Result> UpdateTimeOffAsync(TimeOff timeOff);
     Task<Result> DeleteTimeOffAsync(int id);
+    Task<Result> DeleteAllTimeOffsAsync();
 }

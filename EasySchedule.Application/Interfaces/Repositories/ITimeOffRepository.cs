@@ -9,4 +9,5 @@ public interface ITimeOffRepository
     Task AddAsync(TimeOff timeOff);
     Task UpdateAsync(TimeOff timeOff);
     Task DeleteAsync(TimeOff timeOff);
+    Task DeleteAllAsync();
 }
