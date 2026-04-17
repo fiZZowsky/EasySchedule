@@ -137,8 +137,34 @@ public class GeneratorPage : ContentPage
         };
         settingsCard.SetBinding(Border.IsVisibleProperty, nameof(GeneratorViewModel.IsEditable));
 
-        var resultsLabel = new Label { Text = "Podgląd grafiku:", FontAttributes = FontAttributes.Bold, Margin = new Thickness(0, 20, 0, 5) };
-        resultsLabel.SetBinding(Label.IsVisibleProperty, nameof(GeneratorViewModel.HasGeneratedSchedule));
+        var pdfBtn = new Button
+        {
+            Text = "E",
+            BackgroundColor = Colors.DarkRed,
+            TextColor = Colors.White,
+            WidthRequest = 35,
+            HeightRequest = 35,
+            CornerRadius = 8,
+            Padding = 0,
+            FontAttributes = FontAttributes.Bold,
+            VerticalOptions = LayoutOptions.Center
+        };
+        pdfBtn.SetBinding(Button.CommandProperty, nameof(GeneratorViewModel.ExportPdfCommand));
+
+        var resultsHeaderGrid = new Grid
+        {
+            ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
+            Margin = new Thickness(0, 20, 0, 5)
+        };
+        resultsHeaderGrid.SetBinding(Grid.IsVisibleProperty, nameof(GeneratorViewModel.HasGeneratedSchedule));
+
+        var resultsLabel = new Label { Text = "Podgląd grafiku:", FontAttributes = FontAttributes.Bold, VerticalOptions = LayoutOptions.Center };
+
+        resultsHeaderGrid.Add(resultsLabel);
+        Grid.SetColumn(resultsLabel, 0);
+
+        resultsHeaderGrid.Add(pdfBtn);
+        Grid.SetColumn(pdfBtn, 1);
 
         var matrixGrid = new Grid
         {
@@ -246,8 +272,8 @@ public class GeneratorPage : ContentPage
         matrixGrid.Add(leftScroll, 0, 1);
         matrixGrid.Add(mainContentScroll, 1, 1);
 
-        var actionsStack = new HorizontalStackLayout { Spacing = 10, HorizontalOptions = LayoutOptions.Center };
-        actionsStack.SetBinding(HorizontalStackLayout.IsVisibleProperty, nameof(GeneratorViewModel.HasGeneratedSchedule));
+        var actionsStack = new VerticalStackLayout { Spacing = 10, HorizontalOptions = LayoutOptions.Fill };
+        actionsStack.SetBinding(VerticalStackLayout.IsVisibleProperty, nameof(GeneratorViewModel.HasGeneratedSchedule));
 
         var editBtn = new Button { Text = "Edytuj Grafik", BackgroundColor = Color.FromArgb("#F39C12"), TextColor = Colors.White };
         editBtn.SetBinding(Button.CommandProperty, "GoToEditPageCommand");
@@ -261,18 +287,14 @@ public class GeneratorPage : ContentPage
         publishBtn.SetBinding(Button.CommandProperty, nameof(GeneratorViewModel.PublishScheduleCommand));
         publishBtn.SetBinding(Button.IsVisibleProperty, nameof(GeneratorViewModel.IsEditable));
 
-        var pdfBtn = new Button { Text = "Eksport PDF", BackgroundColor = Colors.DarkRed, TextColor = Colors.White };
-        pdfBtn.SetBinding(Button.CommandProperty, nameof(GeneratorViewModel.ExportPdfCommand));
-
         actionsStack.Add(editBtn);
         actionsStack.Add(saveDraftBtn);
         actionsStack.Add(publishBtn);
-        actionsStack.Add(pdfBtn);
 
         mainStack.Add(staffingCard);
         mainStack.Add(overridesCard);
         mainStack.Add(settingsCard);
-        mainStack.Add(resultsLabel);
+        mainStack.Add(resultsHeaderGrid);
         mainStack.Add(matrixGrid);
         mainStack.Add(actionsStack);
 
