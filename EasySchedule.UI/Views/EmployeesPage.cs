@@ -32,7 +32,7 @@ public class EmployeesPage : ContentPage
         {
             RowDefinitions = {
                 new RowDefinition(GridLength.Auto),
-                new RowDefinition(GridLength.Auto), 
+                new RowDefinition(GridLength.Auto),
                 new RowDefinition(GridLength.Star)
             },
             Padding = 15
@@ -52,9 +52,14 @@ public class EmployeesPage : ContentPage
         profPicker.ItemDisplayBinding = new Binding("Name");
         profPicker.SetBinding(Picker.SelectedItemProperty, "SelectedProfession");
 
-        var addBtn = new Button { Text = "DODAJ PRACOWNIKA", FontAttributes = FontAttributes.Bold, TextColor = Colors.White, CornerRadius = 8 };
-        addBtn.SetDynamicResource(Button.BackgroundColorProperty, "Primary");
-        addBtn.SetBinding(Button.CommandProperty, "AddEmployeeCommand");
+        var saveBtn = new Button { FontAttributes = FontAttributes.Bold, TextColor = Colors.White, CornerRadius = 8 };
+        saveBtn.SetDynamicResource(Button.BackgroundColorProperty, "Primary");
+        saveBtn.SetBinding(Button.CommandProperty, "SaveEmployeeCommand");
+        saveBtn.SetBinding(Button.TextProperty, "SubmitButtonText");
+
+        var cancelBtn = new Button { Text = "ANULUJ EDYCJĘ", FontAttributes = FontAttributes.Bold, TextColor = Colors.White, BackgroundColor = Colors.Gray, CornerRadius = 8 };
+        cancelBtn.SetBinding(Button.CommandProperty, "CancelEditCommand");
+        cancelBtn.SetBinding(Button.IsVisibleProperty, "IsCancelVisible");
 
         var formCard = new Border
         {
@@ -64,7 +69,7 @@ public class EmployeesPage : ContentPage
             Padding = 15,
             Margin = new Thickness(0, 0, 0, 15),
             Shadow = new Shadow { Brush = Colors.Black, Offset = new Point(0, 4), Radius = 10, Opacity = 0.05f },
-            Content = new VerticalStackLayout { Spacing = 10, Children = { entryName, entrySurname, entryPhoneNumber, profPicker, addBtn } }
+            Content = new VerticalStackLayout { Spacing = 10, Children = { entryName, entrySurname, entryPhoneNumber, profPicker, saveBtn, cancelBtn } }
         };
 
         var filterPicker = new Picker
@@ -94,10 +99,11 @@ public class EmployeesPage : ContentPage
         {
             var cardGrid = new Grid
             {
-                ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
+                ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Auto) },
                 RowDefinitions = { new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto) },
                 Padding = 15,
-                RowSpacing = 5
+                RowSpacing = 5,
+                ColumnSpacing = 5
             };
 
             var nameLabel = new Label { FontSize = 16, FontAttributes = FontAttributes.Bold };
@@ -122,6 +128,22 @@ public class EmployeesPage : ContentPage
             };
             ((Label)profBadge.Content).SetBinding(Label.TextProperty, "Profession.Name");
 
+            var editBtn = new Button
+            {
+                BackgroundColor = Color.FromArgb("#E0F2FE"),
+                WidthRequest = 35,
+                HeightRequest = 35,
+                CornerRadius = 8,
+                Padding = 0,
+                VerticalOptions = LayoutOptions.Center
+            }
+            .Icon(MaterialIcons.Edit)
+            .IconColor(Color.FromArgb("#0284C7"))
+            .IconSize(22);
+
+            editBtn.SetBinding(Button.CommandProperty, new Binding("EditEmployeeCommand", source: _viewModel));
+            editBtn.SetBinding(Button.CommandParameterProperty, ".");
+
             var deleteBtn = new Button
             {
                 BackgroundColor = Color.FromArgb("#FEE2E2"),
@@ -141,7 +163,11 @@ public class EmployeesPage : ContentPage
             cardGrid.Add(nameLabel, 0, 0);
             cardGrid.Add(profBadge, 0, 1);
             cardGrid.Add(phoneLabel, 0, 2);
-            cardGrid.Add(deleteBtn, 1, 0);
+
+            cardGrid.Add(editBtn, 1, 0);
+            Grid.SetRowSpan(editBtn, 2);
+
+            cardGrid.Add(deleteBtn, 2, 0);
             Grid.SetRowSpan(deleteBtn, 2);
 
             return new Border

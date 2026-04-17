@@ -21,7 +21,7 @@ namespace EasySchedule.Infrastructure.Repositories
 
         public async Task<Employee?> GetByIdAsync(int id)
         {
-            return await dbContext.Employees.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
+            return await dbContext.Employees.FirstOrDefaultAsync(e => e.Id == id);
         }
 
         public async Task AddAsync(Employee employee)
@@ -32,12 +32,16 @@ namespace EasySchedule.Infrastructure.Repositories
 
         public async Task UpdateAsync(Employee employee)
         {
+            dbContext.ChangeTracker.Clear();
+
             dbContext.Employees.Update(employee);
             await dbContext.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(Employee employee)
         {
+            dbContext.ChangeTracker.Clear();
+
             dbContext.Remove(employee);
             await dbContext.SaveChangesAsync();
         }

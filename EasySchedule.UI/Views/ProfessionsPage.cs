@@ -35,7 +35,25 @@ public class ProfessionsPage : ContentPage
         };
 
         var entryName = new Entry { Placeholder = "Nazwa profesji (np. Pielęgniarka)" };
-        entryName.SetBinding(Entry.TextProperty, "NewName");
+        entryName.SetBinding(Entry.TextProperty, "NewProfessionName");
+
+        var nightShiftSwitch = new Switch();
+        nightShiftSwitch.SetBinding(Switch.IsToggledProperty, "NewProfessionCanWorkNights");
+
+        var nightShiftLabel = new Label
+        {
+            Text = "Może pracować na zmiany nocne",
+            VerticalOptions = LayoutOptions.Center,
+            TextColor = Colors.Gray,
+            FontSize = 14
+        };
+
+        var nightShiftContainer = new HorizontalStackLayout
+        {
+            Spacing = 10,
+            Margin = new Thickness(5, 0, 0, 5),
+            Children = { nightShiftSwitch, nightShiftLabel }
+        };
 
         var addBtn = new Button
         {
@@ -55,7 +73,7 @@ public class ProfessionsPage : ContentPage
             Padding = 15,
             Margin = new Thickness(0, 0, 0, 15),
             Shadow = new Shadow { Brush = Colors.Black, Offset = new Point(0, 4), Radius = 10, Opacity = 0.05f },
-            Content = new VerticalStackLayout { Spacing = 10, Children = { entryName, addBtn } }
+            Content = new VerticalStackLayout { Spacing = 10, Children = { entryName, nightShiftContainer, addBtn } }
         };
 
         var collectionView = new CollectionView { SelectionMode = SelectionMode.None };
@@ -66,7 +84,9 @@ public class ProfessionsPage : ContentPage
             var cardGrid = new Grid
             {
                 ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
-                Padding = 15
+                RowDefinitions = { new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto) },
+                Padding = 15,
+                RowSpacing = 2
             };
 
             var nameLabel = new Label { FontSize = 16, FontAttributes = FontAttributes.Bold, VerticalOptions = LayoutOptions.Center };
@@ -91,6 +111,7 @@ public class ProfessionsPage : ContentPage
 
             cardGrid.Add(nameLabel, 0, 0);
             cardGrid.Add(deleteBtn, 1, 0);
+            Grid.SetRowSpan(deleteBtn, 2);
 
             var cardBorder = new Border
             {

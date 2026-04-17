@@ -75,7 +75,7 @@ public class AppDbContext : DbContext
             entity.HasOne(sa => sa.Employee)
                   .WithMany()
                   .HasForeignKey(sa => sa.EmployeeId)
-                  .OnDelete(DeleteBehavior.Restrict);
+                  .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(sa => sa.ShiftType)
                   .WithMany()

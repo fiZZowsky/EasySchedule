@@ -15,15 +15,23 @@ public partial class EmployeesViewModel : BaseViewModel
 
     public ObservableCollection<Employee> Employees { get; } = new();
     public ObservableCollection<Profession> Professions { get; } = new();
-
     public ObservableCollection<Profession> FilterProfessions { get; } = new();
 
     [ObservableProperty] private string _newName = string.Empty;
     [ObservableProperty] private string _newSurname = string.Empty;
     [ObservableProperty] private string _newPhoneNumber = string.Empty;
     [ObservableProperty] private Profession? _selectedProfession;
-
     [ObservableProperty] private Profession? _selectedFilterProfession;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SubmitButtonText))]
+    [NotifyPropertyChangedFor(nameof(IsCancelVisible))]
+    private bool _isEditing;
+
+    private Employee? _employeeToEdit;
+
+    public string SubmitButtonText => IsEditing ? "ZAPISZ ZMIANY" : "DODAJ PRACOWNIKA";
+    public bool IsCancelVisible => IsEditing;
 
     private readonly Profession _allProfessionPlaceholder = new Profession("Wszystkie");
 
@@ -56,7 +64,10 @@ public partial class EmployeesViewModel : BaseViewModel
                     FilterProfessions.Add(p);
                 }
 
-                SelectedFilterProfession = _allProfessionPlaceholder;
+                if (SelectedFilterProfession == null)
+                {
+                    SelectedFilterProfession = _allProfessionPlaceholder;
+                }
             }
 
             var empResult = await _employeeService.GetAllEmployeesAsync();
@@ -92,7 +103,7 @@ public partial class EmployeesViewModel : BaseViewModel
     }
 
     [RelayCommand]
-    public async Task AddEmployeeAsync()
+    public async Task SaveEmployeeAsync()
     {
         if (string.IsNullOrWhiteSpace(NewName) || string.IsNullOrWhiteSpace(NewSurname) || string.IsNullOrWhiteSpace(NewPhoneNumber) || SelectedProfession == null)
         {
@@ -100,21 +111,63 @@ public partial class EmployeesViewModel : BaseViewModel
             return;
         }
 
-        var newEmployee = new Employee(NewName, NewSurname, NewPhoneNumber, SelectedProfession.Id);
-        var result = await _employeeService.AddEmployeeAsync(newEmployee);
-
-        if (result.IsSuccess)
+        if (IsEditing && _employeeToEdit != null)
         {
-            NewName = string.Empty;
-            NewSurname = string.Empty;
-            NewPhoneNumber = string.Empty;
-            SelectedProfession = null;
-            await LoadDataAsync();
+            _employeeToEdit.UpdateDetails(NewName, NewSurname, NewPhoneNumber);
+            _employeeToEdit.ChangeProfession(SelectedProfession.Id);
+
+            var result = await _employeeService.UpdateEmployeeAsync(_employeeToEdit);
+
+            if (result.IsSuccess)
+            {
+                CancelEdit();
+                await LoadDataAsync();
+            }
+            else
+            {
+                await Shell.Current.DisplayAlertAsync("Błąd", result.Errors.First().Message, "OK");
+            }
         }
         else
         {
-            await Shell.Current.DisplayAlertAsync("Błąd", result.Errors.First().Message, "OK");
+            var newEmployee = new Employee(NewName, NewSurname, NewPhoneNumber, SelectedProfession.Id);
+            var result = await _employeeService.AddEmployeeAsync(newEmployee);
+
+            if (result.IsSuccess)
+            {
+                CancelEdit();
+                await LoadDataAsync();
+            }
+            else
+            {
+                await Shell.Current.DisplayAlertAsync("Błąd", result.Errors.First().Message, "OK");
+            }
         }
+    }
+
+    [RelayCommand]
+    public void EditEmployee(Employee employee)
+    {
+        if (employee == null) return;
+
+        _employeeToEdit = employee;
+        NewName = employee.Name;
+        NewSurname = employee.Surname;
+        NewPhoneNumber = employee.PhoneNumber;
+        SelectedProfession = Professions.FirstOrDefault(p => p.Id == employee.ProfessionId);
+
+        IsEditing = true;
+    }
+
+    [RelayCommand]
+    public void CancelEdit()
+    {
+        _employeeToEdit = null;
+        NewName = string.Empty;
+        NewSurname = string.Empty;
+        NewPhoneNumber = string.Empty;
+        SelectedProfession = null;
+        IsEditing = false;
     }
 
     [RelayCommand]
@@ -128,6 +181,10 @@ public partial class EmployeesViewModel : BaseViewModel
         var result = await _employeeService.DeleteEmployeeAsync(employee.Id);
         if (result.IsSuccess)
         {
+            if (IsEditing && _employeeToEdit?.Id == employee.Id)
+            {
+                CancelEdit();
+            }
             await LoadDataAsync();
         }
         else
@@ -142,9 +199,9 @@ public partial class EmployeesViewModel : BaseViewModel
         if (employee == null) return;
 
         var navigationParameter = new Dictionary<string, object>
-    {
-        { "Employee", employee }
-    };
+        {
+            { "Employee", employee }
+        };
 
         await Shell.Current.GoToAsync(nameof(EasySchedule.UI.Views.TimeOffsPage), navigationParameter);
     }
