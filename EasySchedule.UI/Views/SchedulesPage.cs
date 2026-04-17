@@ -30,12 +30,56 @@ public class SchedulesPage : ContentPage
 
     private void BuildUI()
     {
-        var mainGrid = new Grid();
+        var mainGrid = new Grid
+        {
+            RowDefinitions = {
+                new RowDefinition(GridLength.Auto),
+                new RowDefinition(GridLength.Star)
+            },
+            Padding = 15
+        };
+
+        var entryName = new Entry { Placeholder = "Nazwa grafiku (np. Lipiec 2026)" };
+        entryName.SetBinding(Entry.TextProperty, "NewName");
+
+        var profPicker = new Picker { Title = "Wybierz profesję" };
+        profPicker.SetBinding(Picker.ItemsSourceProperty, "Professions");
+        profPicker.ItemDisplayBinding = new Binding("Name");
+        profPicker.SetBinding(Picker.SelectedItemProperty, "SelectedProfession");
+
+        var startDatePicker = new DatePicker { Format = "dd.MM.yyyy" };
+        startDatePicker.SetBinding(DatePicker.DateProperty, "NewStartDate");
+
+        var endDatePicker = new DatePicker { Format = "dd.MM.yyyy" };
+        endDatePicker.SetBinding(DatePicker.DateProperty, "NewEndDate");
+
+        var dateContainer = new HorizontalStackLayout
+        {
+            Spacing = 15,
+            Children = {
+                new VerticalStackLayout { Children = { new Label { Text = "Od:", FontSize = 12, TextColor = Colors.Gray }, startDatePicker } },
+                new VerticalStackLayout { Children = { new Label { Text = "Do:", FontSize = 12, TextColor = Colors.Gray }, endDatePicker } }
+            }
+        };
+
+        var addBtn = new Button { Text = "UTWÓRZ SZKIELET GRAFIKU", FontAttributes = FontAttributes.Bold, TextColor = Colors.White, CornerRadius = 8 };
+        addBtn.SetDynamicResource(Button.BackgroundColorProperty, "Primary");
+        addBtn.SetBinding(Button.CommandProperty, "AddScheduleCommand");
+
+        var formCard = new Border
+        {
+            BackgroundColor = Colors.White,
+            StrokeThickness = 0,
+            StrokeShape = new RoundRectangle { CornerRadius = 12 },
+            Padding = 15,
+            Margin = new Thickness(0, 0, 0, 15),
+            Shadow = new Shadow { Brush = Colors.Black, Offset = new Point(0, 4), Radius = 10, Opacity = 0.05f },
+            Content = new VerticalStackLayout { Spacing = 10, Children = { entryName, profPicker, dateContainer, addBtn } }
+        };
 
         var collectionView = new CollectionView
         {
-            SelectionMode = SelectionMode.None,
-            Margin = new Thickness(15, 15, 15, 80)
+            SelectionMode = SelectionMode.None
         };
 
         collectionView.SetBinding(ItemsView.ItemsSourceProperty, "Schedules");
@@ -119,25 +163,8 @@ public class SchedulesPage : ContentPage
             return cardBorder;
         });
 
-        var fab = new Button
-        {
-            Text = "+",
-            FontSize = 32,
-            FontAttributes = FontAttributes.Bold,
-            TextColor = Colors.White,
-            WidthRequest = 64,
-            HeightRequest = 64,
-            CornerRadius = 32,
-            HorizontalOptions = LayoutOptions.End,
-            VerticalOptions = LayoutOptions.End,
-            Margin = new Thickness(20),
-            Shadow = new Shadow { Brush = Colors.Black, Offset = new Point(0, 4), Radius = 8, Opacity = 0.2f }
-        };
-        fab.SetDynamicResource(Button.BackgroundColorProperty, "Primary");
-        fab.SetBinding(Button.CommandProperty, "AddScheduleCommand");
-
-        mainGrid.Add(collectionView);
-        mainGrid.Add(fab);
+        mainGrid.Add(formCard, 0, 0);
+        mainGrid.Add(collectionView, 0, 1);
 
         Content = mainGrid;
     }
