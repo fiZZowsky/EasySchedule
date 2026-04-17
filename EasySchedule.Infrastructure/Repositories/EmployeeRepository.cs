@@ -16,7 +16,7 @@ namespace EasySchedule.Infrastructure.Repositories
 
         public async Task<IEnumerable<Employee>> GetAllAsync()
         {
-            return await dbContext.Employees.Include(e => e.Profession).OrderBy(x => x.Surname).AsNoTracking().ToListAsync();
+            return await dbContext.Employees.Include(e => e.Profession).OrderBy(x => x.Surname).ThenBy(x => x.Name).AsNoTracking().ToListAsync();
         }
 
         public async Task<Employee?> GetByIdAsync(int id)
