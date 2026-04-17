@@ -107,4 +107,27 @@ public partial class SchedulesViewModel : BaseViewModel
         var navParam = new Dictionary<string, object> { { "Schedule", SelectedSchedule } };
         await Shell.Current.GoToAsync(nameof(GeneratorPage), navParam);
     }
+
+    [RelayCommand]
+    public async Task DeleteScheduleAsync(Schedule schedule)
+    {
+        if (schedule == null) return;
+
+        bool confirm = await Shell.Current.DisplayAlertAsync("Potwierdzenie",
+            $"Czy na pewno chcesz usunąć grafik '{schedule.Name}'? Tej operacji nie można cofnąć.",
+            "Tak, usuń", "Anuluj");
+
+        if (!confirm) return;
+
+        var result = await _scheduleService.DeleteScheduleAsync(schedule.Id);
+
+        if (result.IsSuccess)
+        {
+            await LoadDataAsync();
+        }
+        else
+        {
+            await Shell.Current.DisplayAlertAsync("Błąd", result.Errors.FirstOrDefault()?.Message, "OK");
+        }
+    }
 }

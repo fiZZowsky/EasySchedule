@@ -2,6 +2,8 @@ using EasySchedule.Domain.Entities;
 using EasySchedule.UI.ViewModels;
 using Microsoft.Maui.Controls.Shapes;
 using EasySchedule.UI.Converters;
+using MauiIcons.Core;
+using MauiIcons.Material;
 
 namespace EasySchedule.UI.Views;
 
@@ -34,7 +36,7 @@ public class SchedulesPage : ContentPage
         {
             RowDefinitions = {
                 new RowDefinition(GridLength.Auto),
-                new RowDefinition(GridLength.Star)
+                new RowDefinition(GridLength.Star) 
             },
             Padding = 15
         };
@@ -88,10 +90,11 @@ public class SchedulesPage : ContentPage
         {
             var cardGrid = new Grid
             {
-                ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
+                ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Auto) },
                 RowDefinitions = { new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto) },
                 Padding = 15,
-                RowSpacing = 5
+                RowSpacing = 5,
+                ColumnSpacing = 10
             };
 
             var nameLabel = new Label { FontSize = 16, FontAttributes = FontAttributes.Bold };
@@ -122,10 +125,32 @@ public class SchedulesPage : ContentPage
             };
             ((Label)statusBadge.Content).SetBinding(Label.TextProperty, new Binding("Status", converter: new ScheduleStatusConverter()));
 
+            var deleteBtn = new Button
+            {
+                BackgroundColor = Color.FromArgb("#FEE2E2"),
+                WidthRequest = 35,
+                HeightRequest = 35,
+                CornerRadius = 8,
+                Padding = 0,
+                VerticalOptions = LayoutOptions.Center
+            }
+            .Icon(MaterialIcons.Delete)
+            .IconColor(Color.FromArgb("#DC2626"))
+            .IconSize(22);
+
+            deleteBtn.SetBinding(Button.CommandProperty, new Binding("DeleteScheduleCommand", source: _viewModel));
+            deleteBtn.SetBinding(Button.CommandParameterProperty, ".");
+
+            deleteBtn.SetBinding(Button.IsVisibleProperty, new Binding("Status", converter: new DraftToVisibilityConverter()));
+
             cardGrid.Add(nameLabel, 0, 0);
             cardGrid.Add(datesLabel, 0, 1);
+
             cardGrid.Add(statusBadge, 1, 0);
             Grid.SetRowSpan(statusBadge, 2);
+
+            cardGrid.Add(deleteBtn, 2, 0);
+            Grid.SetRowSpan(deleteBtn, 2);
 
             var cardBorder = new Border
             {
