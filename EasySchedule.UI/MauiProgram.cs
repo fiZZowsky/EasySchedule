@@ -12,6 +12,7 @@ using EasySchedule.UI.Views;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MauiIcons.Material;
 
 namespace EasySchedule.UI
 {
@@ -22,6 +23,7 @@ namespace EasySchedule.UI
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseMaterialMauiIcons()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");

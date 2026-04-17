@@ -1,4 +1,6 @@
 using EasySchedule.UI.ViewModels;
+using MauiIcons.Core;
+using MauiIcons.Material;
 using Microsoft.Maui.Controls.Shapes;
 
 namespace EasySchedule.UI.Views;
@@ -81,9 +83,14 @@ public class GeneratorPage : ContentPage
             sLabel.SetBinding(Label.TextProperty, "ShiftName");
             var cLabel = new Label { VerticalOptions = LayoutOptions.Center, TextColor = Color.FromArgb("#1976D2") };
             cLabel.SetBinding(Label.TextProperty, new Binding("Count", stringFormat: "Osób: {0}"));
-            var delBtn = new ImageButton { Source = "dotnet_bot.png", WidthRequest = 20, HeightRequest = 20, VerticalOptions = LayoutOptions.Center };
-            delBtn.SetBinding(ImageButton.CommandProperty, new Binding(nameof(GeneratorViewModel.RemoveOverrideLocalCommand), source: _viewModel));
-            delBtn.SetBinding(ImageButton.CommandParameterProperty, ".");
+
+            // POPRAWKA: Zwykły Button zamiast ImageButton dla ikonki usuwania
+            var delBtn = new Button { BackgroundColor = Color.FromArgb("#FEE2E2"), WidthRequest = 35, HeightRequest = 35, CornerRadius = 8, Padding = 0, VerticalOptions = LayoutOptions.Center }
+                .Icon(MaterialIcons.Delete)
+                .IconColor(Color.FromArgb("#DC2626"));
+            delBtn.SetBinding(Button.CommandProperty, new Binding(nameof(GeneratorViewModel.RemoveOverrideLocalCommand), source: _viewModel));
+            delBtn.SetBinding(Button.CommandParameterProperty, ".");
+
             row.Add(dLabel, 0); row.Add(sLabel, 1); row.Add(cLabel, 2); row.Add(delBtn, 3);
             return row;
         }));
@@ -139,16 +146,15 @@ public class GeneratorPage : ContentPage
 
         var pdfBtn = new Button
         {
-            Text = "E",
             BackgroundColor = Colors.DarkRed,
-            TextColor = Colors.White,
             WidthRequest = 35,
             HeightRequest = 35,
             CornerRadius = 8,
             Padding = 0,
-            FontAttributes = FontAttributes.Bold,
             VerticalOptions = LayoutOptions.Center
-        };
+        }
+        .Icon(MaterialIcons.Download)
+        .IconColor(Colors.White);
         pdfBtn.SetBinding(Button.CommandProperty, nameof(GeneratorViewModel.ExportPdfCommand));
 
         var resultsHeaderGrid = new Grid
