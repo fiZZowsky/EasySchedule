@@ -6,6 +6,8 @@ namespace EasySchedule.UI
     {
         public AppShell()
         {
+            _ = new MauiIcons.Core.MauiIcon();
+
             InitializeComponent();
 
             Routing.RegisterRoute(nameof(EasySchedule.UI.Views.TimeOffsPage), typeof(EasySchedule.UI.Views.TimeOffsPage));

@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:EasySchedule.UI.Views"
+    xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
     Shell.FlyoutBehavior="Flyout"
     FlyoutBackgroundColor="{StaticResource Surface}">
 
@@ -19,19 +20,23 @@
         </Grid>
     </Shell.FlyoutHeader>
 
-    <FlyoutItem Title="Zarządzaj Grafikami" Icon="dotnet_bot.png">
+    <FlyoutItem Title="Zarządzaj Grafikami" Icon="{mi:Material Icon=CalendarMonth, IconColor=Black}">
         <ShellContent Route="SchedulesPage" ContentTemplate="{DataTemplate local:SchedulesPage}" />
     </FlyoutItem>
-    <FlyoutItem Title="Pracownicy" Icon="dotnet_bot.png">
+
+    <FlyoutItem Title="Pracownicy" Icon="{mi:Material Icon=People, IconColor=Black}">
         <ShellContent Route="EmployeesPage" ContentTemplate="{DataTemplate local:EmployeesPage}" />
     </FlyoutItem>
-    <FlyoutItem Title="Profesje" Icon="dotnet_bot.png">
+
+    <FlyoutItem Title="Profesje" Icon="{mi:Material Icon=Work, IconColor=Black}">
         <ShellContent Route="ProfessionsPage" ContentTemplate="{DataTemplate local:ProfessionsPage}" />
     </FlyoutItem>
-    <FlyoutItem Title="Typy Zmian" Icon="dotnet_bot.png">
+
+    <FlyoutItem Title="Typy Zmian" Icon="{mi:Material Icon=Schedule, IconColor=Black}">
         <ShellContent Route="ShiftTypesPage" ContentTemplate="{DataTemplate local:ShiftTypesPage}" />
     </FlyoutItem>
-    <FlyoutItem Title="Urlopy i Zwolnienia" Icon="dotnet_bot.png">
+
+    <FlyoutItem Title="Urlopy i Zwolnienia" Icon="{mi:Material Icon=EventBusy, IconColor=Black}">
         <ShellContent Route="TimeOffsPage" ContentTemplate="{DataTemplate local:TimeOffsPage}" />
     </FlyoutItem>
 

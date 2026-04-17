@@ -1,5 +1,7 @@
 ﻿using EasySchedule.UI.ViewModels;
 using Microsoft.Maui.Controls.Shapes;
+using MauiIcons.Core;
+using MauiIcons.Material;
 using System;
 
 namespace EasySchedule.UI.Views;
@@ -64,7 +66,11 @@ public class EditSchedulePage : ContentPage
                 }
             });
 
-            var delBtn = new Button { Text = "Usuń", BackgroundColor = Color.FromArgb("#E74C3C"), TextColor = Colors.White, HeightRequest = 35, Padding = new Thickness(10, 0) };
+            // ZMIANA: Dodano .IconSize(22) aby powiększyć samą ikonę kosza
+            var delBtn = new Button { BackgroundColor = Color.FromArgb("#FEE2E2"), WidthRequest = 35, HeightRequest = 35, CornerRadius = 8, Padding = 0, VerticalOptions = LayoutOptions.Center }
+                .Icon(MaterialIcons.Delete)
+                .IconColor(Color.FromArgb("#DC2626"))
+                .IconSize(22);
             delBtn.SetBinding(Button.CommandProperty, new Binding("RemoveAssignmentCommand", source: _viewModel));
             delBtn.SetBinding(Button.CommandParameterProperty, ".");
 

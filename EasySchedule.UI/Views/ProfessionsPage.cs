@@ -1,5 +1,7 @@
 using EasySchedule.UI.ViewModels;
 using Microsoft.Maui.Controls.Shapes;
+using MauiIcons.Core;
+using MauiIcons.Material;
 
 namespace EasySchedule.UI.Views;
 
@@ -73,14 +75,17 @@ public class ProfessionsPage : ContentPage
 
             var deleteBtn = new Button
             {
-                Text = "Usuń",
                 BackgroundColor = Color.FromArgb("#FEE2E2"),
-                TextColor = Color.FromArgb("#DC2626"),
-                FontSize = 12,
-                CornerRadius = 6,
-                HeightRequest = 32,
-                Padding = new Thickness(10, 0)
-            };
+                WidthRequest = 35,
+                HeightRequest = 35,
+                CornerRadius = 8,
+                Padding = 0,
+                VerticalOptions = LayoutOptions.Center
+            }
+            .Icon(MaterialIcons.Delete)
+            .IconColor(Color.FromArgb("#DC2626"))
+            .IconSize(22);
+
             deleteBtn.SetBinding(Button.CommandProperty, new Binding("DeleteProfessionCommand", source: _viewModel));
             deleteBtn.SetBinding(Button.CommandParameterProperty, ".");
 
