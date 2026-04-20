@@ -19,28 +19,36 @@ EasySchedule to wieloplatformowa aplikacja do zarządzania grafikami i harmonogr
 
 Interfejs aplikacji został zaprojektowany z myślą o prostocie i czytelności, wykorzystując natywne kontrolki systemu dzięki **.NET MAUI**. Poniżej znajduje się podgląd najważniejszych widoków aplikacji.
 
-*(Zastąp poniższe ścieżki linkami do swoich rzeczywistych zrzutów ekranu w repozytorium)*
+* **Zarządzanie harmonogramami**
+<p align="center">
+  <img src="docs/images/TabTip_6PLjfBm7Cq.png" alt="Ekran główny - Harmonogramy"><br>
+  <i>Podgląd listy utworzonych grafików pracy wraz z ich obecnym statusem (np. Draft, Opublikowany).</i>
+</p>
 
-### Zarządzanie harmonogramami
-![Ekran główny - Harmonogramy](link_do_screena_schedules_page.png)
-*Podgląd listy utworzonych grafików pracy wraz z ich obecnym statusem (np. Draft, Opublikowany).*
+* **Generator grafiku**
+<p align="center">
+  <img src="docs/images/TabTip_SSTJd2ftrc.png" alt="Widok Generatora"><br>
+  <i>Widok automatycznego generowania harmonogramu. To tutaj w tle uruchamiane są reguły (Rules) sprawdzające czas odpoczynku czy zapotrzebowanie na zmiany.</i>
+</p>
 
-### Generator grafiku
-![Widok Generatora](link_do_screena_generator_page.png)
-*Widok automatycznego generowania harmonogramu. To tutaj w tle uruchamiane są reguły (Rules) sprawdzające czas odpoczynku czy zapotrzebowanie na zmiany.*
-
-### Baza pracowników i urlopy
-![Baza Pracowników](link_do_screena_employees_page.png)
-*Panel zarządzania personelem, gdzie można określić zawód (Profession) pracownika oraz zarządzać jego nieobecnościami (Time Offs).*
+* **Baza pracowników**
+<p align="center">
+  <img src="docs/images/TabTip_y8vt0aAl1d.png" alt="Baza Pracowników"><br>
+  <i>Panel zarządzania personelem.</i>
+</p>
 
 <details>
 <summary><b>Kliknij tutaj, aby zobaczyć więcej zrzutów ekranu</b></summary>
 
 * **Edycja Zmian (Shift Types):**
-  ![Typy zmian](link_do_screena_shift_types.png)
+  <p align="center"><img src="docs/images/TabTip_3p7PhbfSQD.png" alt="Typy zmian"></p>
 * **Zarządzanie zawodami (Professions):**
-  ![Zawody](link_do_screena_professions.png)
-
+  <p align="center"><img src="docs/images/TabTip_gOrVVS6xwo.png" alt="Zawody"></p>
+* **Zarządzanie urlopami (Time Off):**
+  <p align="center"><img src="docs/images/TabTip_E6HovDsYIZ.png" alt="Zarządzanie urlopami"></p>
+* **Wygenerowany grafik:**
+  <p align="center"><img src="docs/images/opera_ByxioUy8CT.png" alt="Wygenerowany grafik"></p>
+  
 </details>
 
 ## 🏗️ Architektura projektu
