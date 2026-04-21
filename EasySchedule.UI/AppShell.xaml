@@ -6,7 +6,7 @@
     xmlns:local="clr-namespace:EasySchedule.UI.Views"
     xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
     Shell.FlyoutBehavior="Flyout"
-    FlyoutBackgroundColor="{StaticResource Surface}">
+    FlyoutBackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
 
     <Shell.FlyoutHeader>
         <Grid HeightRequest="160" BackgroundColor="{StaticResource Primary}">

@@ -8,6 +8,9 @@ namespace EasySchedule.UI
         public App(AppDbContext dbContext)
         {
             InitializeComponent();
+
+            this.UserAppTheme = AppTheme.Light;
+
             dbContext.Database.Migrate();
         }
 
